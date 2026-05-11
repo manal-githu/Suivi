@@ -1,0 +1,2714 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suivi Prescriptions</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap');
+  :root {
+    --bg: #f4f1eb;
+    --surface: #faf8f4;
+    --surface2: #ede9e0;
+    --border: #d4c9b5;
+    --accent: #1a2744;
+    --accent-light: #243460;
+    --accent-hover: #0f1829;
+    --gold: #b8973a;
+    --gold-light: #d4aa4a;
+    --gold-bg: rgba(184,151,58,.08);
+    --gold-border: rgba(184,151,58,.25);
+    --green: #1a5c3a;
+    --green-bg: rgba(26,92,58,.07);
+    --green-border: rgba(26,92,58,.2);
+    --yellow: #92580a;
+    --yellow-bg: rgba(146,88,10,.07);
+    --yellow-border: rgba(146,88,10,.2);
+    --red: #8b1c1c;
+    --red-bg: rgba(139,28,28,.07);
+    --blue: #1a3a6b;
+    --blue-bg: rgba(26,58,107,.07);
+    --blue-border: rgba(26,58,107,.2);
+    --text: #1a1410;
+    --text-secondary: #5a5040;
+    --muted: #9a8f7a;
+    --tag-bg: rgba(26,39,68,.07);
+    --shadow: 0 1px 4px rgba(26,20,16,.08);
+    --shadow-md: 0 4px 16px rgba(26,20,16,.1);
+    --shadow-lg: 0 20px 50px rgba(26,20,16,.15);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Inter", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
+
+  #loginScreen {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 2rem;
+    background: var(--accent);
+    background-image: repeating-linear-gradient(45deg, rgba(184,151,58,.03) 0px, rgba(184,151,58,.03) 1px, transparent 1px, transparent 12px);
+  }
+  .login-box {
+    background: var(--surface); border-radius: 4px; padding: 3.5rem 3rem;
+    width: 100%; max-width: 420px;
+    border-top: 4px solid var(--gold);
+    box-shadow: var(--shadow-lg);
+  }
+  .login-logo { font-family: "Playfair Display", serif; font-size: 1.8rem; font-weight: 700; text-align: center; margin-bottom: .2rem; color: var(--accent); letter-spacing: -.01em; }
+  .login-sub { text-align: center; color: var(--gold); font-size: .72rem; margin-bottom: 2.5rem; text-transform: uppercase; letter-spacing: .18em; font-weight: 500; }
+  .login-box input { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: .9rem 1rem; border-radius: 2px; font-family: "Inter",sans-serif; font-size: .9rem; margin-bottom: 1rem; outline: none; transition: all .2s; }
+  .login-box input:focus { border-color: var(--gold); background: #fff; box-shadow: 0 0 0 3px rgba(184,151,58,.1); }
+  .login-btn { width: 100%; background: var(--accent); color: var(--gold-light); border: none; padding: .95rem; border-radius: 2px; font-size: .85rem; font-weight: 600; cursor: pointer; font-family: "Inter",sans-serif; transition: all .2s; letter-spacing: .08em; text-transform: uppercase; }
+  .login-btn:hover { background: var(--accent-light); }
+  .login-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .login-err { color: var(--red); font-size: .82rem; text-align: center; margin-top: .75rem; display:none; background: var(--red-bg); padding: .5rem; border-radius: 2px; border: 1px solid rgba(139,28,28,.15); }
+
+  #app { display: none; }
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2.5rem; background: var(--accent); border-bottom: 2px solid var(--gold);
+    position: sticky; top: 0; z-index: 100; height: 56px;
+  }
+  .logo { font-family: "Playfair Display", serif; font-weight: 700; font-size: 1.05rem; color: #fff; letter-spacing: .01em; }
+  .logo span { color: var(--gold-light); }
+  .nav-tabs { display: flex; gap: 0; height: 100%; }
+  .nav-tab { padding: 0 1.1rem; border: none; background: transparent; color: rgba(255,255,255,.8); font-family: "Inter",sans-serif; font-size: .82rem; cursor: pointer; transition: all .15s; font-weight: 500; letter-spacing: .03em; height: 100%; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+  .nav-tab.active { color: #fff; border-bottom-color: var(--gold); font-weight: 600; }
+  .nav-tab:hover:not(.active) { color: #fff; background: rgba(255,255,255,.08); }
+  .topbar-right { display: flex; gap: .75rem; align-items: center; }
+  .badge-user { font-size: .75rem; color: #fff; padding: .25rem .75rem; background: rgba(255,255,255,.12); border-radius: 2px; font-weight: 500; border: 1px solid rgba(255,255,255,.2); letter-spacing: .04em; }
+  .btn-logout { background: none; border: 1px solid rgba(255,255,255,.25); color: rgba(255,255,255,.8); padding: .3rem .75rem; border-radius: 2px; font-size: .75rem; cursor: pointer; font-family: "Inter",sans-serif; transition: all .15s; }
+  .btn-logout:hover { border-color: rgba(184,151,58,.5); color: var(--gold-light); }
+
+  .section { display: none; padding: 2rem 2.5rem; }
+  .section.active { display: block; }
+  .week-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+  .week-title { font-family: "Playfair Display", serif; font-size: 1.5rem; font-weight: 600; color: var(--accent); letter-spacing: -.01em; }
+  .week-range { color: var(--muted); font-size: .82rem; margin-top: .3rem; letter-spacing: .03em; }
+  .btn-import { background: var(--accent); color: var(--gold-light); border: 1px solid var(--gold); padding: .55rem 1.2rem; border-radius: 2px; font-size: .78rem; font-weight: 600; cursor: pointer; font-family: "Inter",sans-serif; display: flex; align-items: center; gap: .4rem; transition: all .2s; letter-spacing: .05em; text-transform: uppercase; }
+  .btn-import:hover { background: var(--accent-light); }
+
+  .stats-bar { display: grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: 1px; margin-bottom: 2rem; background: var(--border); border: 1px solid var(--border); }
+  .stat-card { background: var(--surface); padding: 1.1rem 1.25rem; border: none; border-radius: 0; }
+  .stat-label { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; font-weight: 600; }
+  .stat-value { font-size: 1.6rem; font-weight: 300; margin-top: .3rem; letter-spacing: -.02em; color: var(--accent); font-family: "Playfair Display", serif; }
+  .stat-value.green { color: var(--green); }
+  .stat-value.yellow { color: var(--yellow); }
+  .stat-value.blue { color: var(--blue); }
+  .stat-value.accent { color: var(--gold); }
+
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); overflow: hidden; border-radius: 0; }
+  .tbl-filter { display: flex; gap: .75rem; padding: .85rem 1.25rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; align-items: center; background: var(--surface2); }
+  .tbl-filter input, .tbl-filter select { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: .45rem .85rem; border-radius: 2px; font-family: "Inter",sans-serif; font-size: .82rem; outline: none; }
+  .tbl-filter input:focus, .tbl-filter select:focus { border-color: var(--gold); }
+  table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  thead th { background: var(--accent); padding: .7rem 1.25rem; text-align: left; color: rgba(255,255,255,.9); font-weight: 600; text-transform: uppercase; font-size: .63rem; letter-spacing: .1em; border-bottom: 1px solid var(--gold); white-space: nowrap; }
+  thead th:first-child { color: var(--gold-light); }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:hover { background: var(--gold-bg); }
+  tbody td { padding: .75rem 1.25rem; vertical-align: middle; }
+
+  .status-select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: .35rem .7rem; border-radius: 2px; font-size: .8rem; cursor: pointer; outline: none; font-family: "Inter",sans-serif; min-width: 105px; }
+  .status-badge { display: inline-block; padding: .2rem .65rem; border-radius: 2px; font-size: .7rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+  .s-none { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+  .s-decale { background: var(--yellow-bg); color: var(--yellow); border: 1px solid var(--yellow-border); }
+  .s-r3 { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+  .s-signe { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+
+  .vol-input-group { display: none; gap: .4rem; align-items: center; flex-wrap: wrap; }
+  .vol-input-group.active { display: flex; }
+  .vol-input-group label { font-size: .65rem; color: var(--muted); white-space: nowrap; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; width: 38px; }
+  .vol-input { width: 85px; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: .3rem .5rem; border-radius: 2px; font-size: .82rem; outline: none; font-family: "Inter",sans-serif; text-align: right; }
+  .vol-input:focus { border-color: var(--gold); }
+  .com-display { font-weight: 600; color: var(--green); font-size: .88rem; white-space: nowrap; min-width: 90px; text-align: right; }
+  .tag-conseiller { display: inline-block; padding: .15rem .5rem; border-radius: 2px; background: var(--tag-bg); color: var(--accent); font-size: .7rem; margin: .1rem; white-space: nowrap; font-weight: 600; letter-spacing: .03em; border: 1px solid rgba(26,39,68,.12); }
+  .vol-badge { display: inline-block; padding: .15rem .45rem; border-radius: 2px; font-size: .68rem; font-weight: 600; letter-spacing: .04em; }
+  .vol-cu { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+  .vol-per { background: var(--gold-bg); color: var(--gold); border: 1px solid var(--gold-border); }
+  .vol-vg { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .totals-row td { font-weight: 600; background: var(--surface2); border-top: 2px solid var(--gold); }
+
+  .hist-controls { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center; }
+  .hist-controls select, .hist-controls input { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: .5rem .9rem; border-radius: 2px; font-family: "Inter",sans-serif; font-size: .85rem; outline: none; }
+  .hist-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(300px,1fr)); gap: 1.25rem; }
+  .conseiller-card { background: var(--surface); border: 1px solid var(--border); overflow: hidden; }
+  .cc-header { padding: .9rem 1.2rem; background: var(--accent); border-bottom: 1px solid var(--gold); display: flex; align-items: center; justify-content: space-between; }
+  .cc-name { font-weight: 600; font-size: .9rem; color: #fff; letter-spacing: .02em; }
+  .cc-group { font-size: .7rem; color: var(--gold-light); margin-top: .1rem; letter-spacing: .04em; }
+  .cc-stats { padding: 1rem 1.2rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .5rem; }
+  .cc-stat { text-align: center; padding: .5rem; background: var(--surface2); border: 1px solid var(--border); }
+  .cc-stat-val { font-weight: 700; font-size: 1.2rem; font-family: "Playfair Display", serif; }
+  .cc-stat-lbl { font-size: .62rem; color: var(--muted); margin-top: .1rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+  .cc-rdvs { padding: 0 1.2rem .5rem; }
+  .cc-rdv-item { display: flex; justify-content: space-between; align-items: center; padding: .4rem 0; border-bottom: 1px solid var(--border); font-size: .8rem; }
+  .cc-rdv-item:last-child { border: none; }
+  .cc-com { font-weight: 600; font-size: .95rem; color: var(--green); padding: .75rem 1.2rem; border-top: 1px solid var(--gold); display: flex; justify-content: space-between; align-items: center; background: var(--gold-bg); }
+
+  .groups-layout { display: grid; grid-template-columns: 260px 1fr; gap: 1.5rem; }
+  .groups-panel { background: var(--surface); border: 1px solid var(--border); padding: 1.2rem; }
+  .panel-title { font-family: "Playfair Display", serif; font-weight: 600; margin-bottom: 1rem; font-size: .95rem; color: var(--accent); }
+  .group-item { display: flex; align-items: center; justify-content: space-between; padding: .65rem .9rem; cursor: pointer; transition: background .1s; border-bottom: 1px solid var(--border); }
+  .group-item:hover, .group-item.active { background: var(--gold-bg); }
+  .group-item.active { border-left: 3px solid var(--gold); }
+  .group-name { font-weight: 600; font-size: .88rem; color: var(--accent); }
+  .group-ref { font-size: .72rem; color: var(--muted); }
+  .group-count { background: var(--gold-bg); color: var(--gold); font-size: .72rem; padding: .2rem .5rem; border: 1px solid var(--gold-border); font-weight: 600; }
+  .btn-add-group { width: 100%; margin-top: .75rem; background: transparent; border: 1px dashed var(--border); color: var(--muted); padding: .6rem; cursor: pointer; font-size: .8rem; font-family: "Inter",sans-serif; transition: all .15s; letter-spacing: .04em; text-transform: uppercase; }
+  .btn-add-group:hover { border-color: var(--gold); color: var(--gold); }
+  .group-detail { background: var(--surface); border: 1px solid var(--border); padding: 1.5rem; }
+  .gd-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+  .gd-title { font-family: "Playfair Display", serif; font-size: 1.2rem; font-weight: 600; color: var(--accent); }
+  .gd-ref { color: var(--muted); font-size: .82rem; margin-top: .2rem; }
+  .member-list { display: flex; flex-direction: column; gap: .4rem; }
+  .member-item { display: flex; align-items: center; justify-content: space-between; padding: .6rem .9rem; background: var(--surface2); border: 1px solid var(--border); }
+  .member-name { font-weight: 500; font-size: .85rem; }
+  .btn-remove { background: none; border: none; color: var(--muted); cursor: pointer; padding: .2rem; font-size: 1rem; }
+  .btn-remove:hover { color: var(--red); }
+  .add-member-row { display: flex; gap: .5rem; margin-top: .75rem; }
+  .add-member-row select { flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: .5rem .8rem; font-family: "Inter",sans-serif; outline: none; font-size: .85rem; border-radius: 2px; }
+  .btn-add-mem { background: var(--accent); color: var(--gold-light); border: 1px solid var(--gold); padding: .5rem 1rem; cursor: pointer; font-family: "Inter",sans-serif; font-weight: 600; font-size: .82rem; border-radius: 2px; letter-spacing: .04em; }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,20,16,.6); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--gold); padding: 2rem; width: 100%; max-width: 460px; box-shadow: var(--shadow-lg); border-radius: 0; }
+  .modal h3 { font-family: "Playfair Display", serif; font-size: 1.2rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--accent); }
+  .form-group { margin-bottom: 1rem; }
+  .form-group label { display: block; font-size: .75rem; color: var(--text-secondary); margin-bottom: .4rem; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; }
+  .form-group input, .form-group select { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: .6rem .9rem; border-radius: 2px; font-family: "Inter",sans-serif; font-size: .9rem; outline: none; }
+  .form-group input:focus, .form-group select:focus { border-color: var(--gold); }
+  .modal-btns { display: flex; gap: .75rem; margin-top: 1.5rem; justify-content: flex-end; }
+  .btn-cancel { background: var(--surface2); border: 1px solid var(--border); color: var(--text-secondary); padding: .6rem 1.2rem; cursor: pointer; font-family: "Inter",sans-serif; font-weight: 500; border-radius: 2px; }
+  .btn-confirm { background: var(--accent); color: var(--gold-light); border: 1px solid var(--gold); padding: .6rem 1.4rem; cursor: pointer; font-family: "Inter",sans-serif; font-weight: 600; letter-spacing: .05em; border-radius: 2px; }
+
+  #setupScreen { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; background: var(--accent); background-image: repeating-linear-gradient(45deg, rgba(184,151,58,.03) 0px, rgba(184,151,58,.03) 1px, transparent 1px, transparent 12px); }
+  .setup-box { background: var(--surface); border-top: 3px solid var(--gold); padding: 2.5rem; width: 100%; max-width: 560px; box-shadow: var(--shadow-lg); }
+  .setup-logo { font-family: "Playfair Display", serif; font-size: 1.5rem; font-weight: 700; text-align: center; margin-bottom: .3rem; color: var(--accent); }
+  .setup-sub { text-align: center; color: var(--muted); font-size: .8rem; margin-bottom: 1.8rem; line-height: 1.6; }
+  .setup-step { background: var(--surface2); padding: 1rem 1.2rem; margin-bottom: 1rem; border: 1px solid var(--border); }
+  .setup-step-title { font-weight: 600; font-size: .85rem; margin-bottom: .5rem; display:flex; align-items:center; gap:.5rem; color: var(--accent); }
+  .setup-textarea { width: 100%; background: #fff; border: 1px solid var(--border); color: var(--text); padding: .75rem 1rem; font-family: monospace; font-size: .78rem; min-height: 100px; resize: vertical; outline: none; margin-bottom: .6rem; }
+  .setup-textarea:focus { border-color: var(--gold); }
+  .btn-parse { background: var(--green); color: #fff; border: none; padding: .55rem 1.2rem; font-size: .85rem; font-weight: 600; cursor: pointer; font-family: "Inter",sans-serif; width: 100%; letter-spacing: .05em; text-transform: uppercase; }
+  .setup-fields { display: none; margin-top: .75rem; }
+  .setup-field-row { display: grid; grid-template-columns: 140px 1fr; gap: .5rem; align-items: center; margin-bottom: .4rem; }
+  .setup-field-label { font-size: .75rem; color: var(--muted); text-align: right; font-family: monospace; font-weight: 600; }
+  .setup-field-input { background: #fff; border: 1px solid var(--border); color: var(--text); padding: .4rem .7rem; font-size: .78rem; font-family: monospace; outline: none; width: 100%; }
+  .setup-err { color: var(--red); font-size: .82rem; margin-top: .75rem; display: none; background: var(--red-bg); padding: .6rem .9rem; border: 1px solid rgba(139,28,28,.15); }
+  #setupBtn { width: 100%; margin-top: 1.2rem; background: var(--accent); color: var(--gold-light); border: 1px solid var(--gold); padding: .9rem; font-size: .88rem; font-weight: 600; cursor: pointer; font-family: "Inter",sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+  #setupBtn:disabled { opacity: .5; cursor: not-allowed; }
+  .setup-help { font-size: .75rem; color: var(--muted); text-align: center; margin-top: 1rem; }
+
+  .drop-zone { border: 2px dashed var(--border); padding: 2rem; text-align: center; color: var(--muted); cursor: pointer; transition: all .15s; }
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--gold); color: var(--gold); background: var(--gold-bg); }
+  .drop-zone input { display: none; }
+  .drop-icon { font-size: 2rem; margin-bottom: .5rem; }
+  .drop-text { font-size: .85rem; font-weight: 500; }
+
+  .week-list { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .week-chip { padding: .35rem .85rem; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); font-size: .78rem; cursor: pointer; transition: all .15s; font-weight: 500; letter-spacing: .03em; }
+  .week-chip.active { background: var(--accent); color: var(--gold-light); border-color: var(--accent); }
+  .week-chip:hover:not(.active) { border-color: var(--gold); color: var(--gold); }
+
+  .empty-state { text-align: center; padding: 3rem; color: var(--muted); }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+
+  .hist-tab { padding: .55rem 1.2rem; border: none; background: transparent; color: var(--text-secondary); font-family: "Inter",sans-serif; font-size: .82rem; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all .15s; letter-spacing: .04em; text-transform: uppercase; }
+  .hist-tab.active { color: var(--gold); border-bottom-color: var(--gold); font-weight: 600; }
+  .hist-tab:hover:not(.active) { color: var(--accent); }
+
+  .month-summary-card { background: var(--accent); border-top: 3px solid var(--gold); padding: 1.5rem; color: #fff; margin-bottom: 1.25rem; }
+  .msc-title { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; color: var(--gold-light); margin-bottom: .75rem; }
+  .msc-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap: 1.25rem; }
+  .msc-stat { text-align: center; }
+  .msc-val { font-family: "Playfair Display", serif; font-size: 1.3rem; font-weight: 600; color: #fff; }
+  .msc-lbl { font-size: .63rem; color: rgba(255,255,255,.55); margin-top: .15rem; text-transform: uppercase; letter-spacing: .08em; }
+
+  .decale-advisor { background: var(--surface); border: 1px solid var(--border); margin-bottom: 1rem; overflow: hidden; }
+  .decale-advisor-header { padding: .85rem 1.2rem; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .decale-advisor-name { font-weight: 600; font-size: .9rem; color: var(--accent); }
+  .decale-count { background: var(--yellow-bg); color: var(--yellow); font-size: .72rem; font-weight: 700; padding: .2rem .6rem; border: 1px solid var(--yellow-border); letter-spacing: .05em; }
+  .decale-row { display: grid; grid-template-columns: 100px 1fr 1fr auto; gap: 1rem; align-items: center; padding: .65rem 1.2rem; border-bottom: 1px solid var(--border); font-size: .82rem; }
+  .decale-row:last-child { border: none; }
+
+  /* TOOLTIP */
+  .has-tooltip { position: relative; cursor: help; }
+  .has-tooltip:hover .tooltip-box { display: block; }
+  .tooltip-box { display: none; position: absolute; bottom: calc(100% + 6px); left: 0; background: var(--accent); color: #fff; border: 1px solid var(--gold); padding: .6rem .9rem; border-radius: 2px; font-size: .75rem; white-space: nowrap; z-index: 999; box-shadow: var(--shadow-md); line-height: 1.6; }
+  .tooltip-box::after { content: ''; position: absolute; top: 100%; left: 12px; border: 5px solid transparent; border-top-color: var(--accent); }
+  /* PERF INSIGHT */
+  .perf-best { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); padding: .15rem .5rem; border-radius: 2px; font-size: .68rem; font-weight: 700; }
+  .perf-worst { background: var(--red-bg); color: var(--red); border: 1px solid rgba(139,28,28,.15); padding: .15rem .5rem; border-radius: 2px; font-size: .68rem; font-weight: 700; }
+  .stats-global-section { background: var(--surface); border: 1px solid var(--border); padding: 1.5rem; margin-bottom: 1.5rem; }
+  .sgs-title { font-family: "Playfair Display", serif; font-weight: 600; font-size: 1rem; margin-bottom: 1.2rem; color: var(--accent); }
+  .week-stats-row { display: grid; grid-template-columns: 140px repeat(5,1fr); gap: .5rem; align-items: center; padding: .55rem .75rem; font-size: .8rem; }
+  .week-stats-row:nth-child(odd) { background: var(--surface2); }
+  .week-stats-row.header { font-weight: 700; font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); background: transparent; }
+
+  .group-card { background: var(--surface); border: 1px solid var(--border); overflow: hidden; }
+  .group-card-header { padding: 1rem 1.2rem; background: var(--accent); border-bottom: 2px solid var(--gold); color: #fff; display: flex; align-items: flex-start; justify-content: space-between; }
+  .group-card-name { font-family: "Playfair Display", serif; font-weight: 700; font-size: 1rem; }
+  .group-card-rt { font-size: .72rem; color: var(--gold-light); margin-top: .2rem; letter-spacing: .04em; }
+  .group-card-body { padding: 1rem 1.2rem; }
+  .group-section-title { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: .5rem; }
+  .group-mia-item { display: flex; align-items: center; justify-content: space-between; padding: .4rem .7rem; background: var(--surface2); margin-bottom: .3rem; border: 1px solid var(--border); }
+  .group-mia-name { font-size: .83rem; font-weight: 500; color: var(--accent); }
+  .group-add-row { display: flex; gap: .5rem; margin-top: .6rem; }
+  .group-add-row select { flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: .45rem .7rem; font-family: "Inter",sans-serif; font-size: .82rem; outline: none; }
+  .btn-add-mia { background: var(--accent); color: var(--gold-light); border: 1px solid var(--gold); padding: .45rem .85rem; cursor: pointer; font-family: "Inter",sans-serif; font-weight: 600; font-size: .78rem; white-space: nowrap; letter-spacing: .04em; }
+  .group-card-footer { padding: .6rem 1.2rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--gold-bg); }
+
+  #adminLayout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media (max-width:900px) { #adminLayout { grid-template-columns: 1fr; } }
+  @media (max-width:1024px) { .topbar { flex-wrap: wrap; height: auto; padding: .75rem 1.5rem; } .section { padding: 1rem 1.5rem; } .stats-bar { grid-template-columns: repeat(2,1fr); } }
+  @media (max-width:600px) { .nav-tabs { overflow-x: auto; } .stats-bar { grid-template-columns: 1fr 1fr; } table { font-size: .72rem; } tbody td { padding: .5rem .75rem; } }
+</style>
+
+</head>
+<body>
+
+<!-- SETUP SCREEN (premier lancement) -->
+<div id="setupScreen">
+  <div class="setup-box">
+    <div class="setup-logo">🔥 Config <span>Firebase</span></div>
+    <div class="setup-sub">
+      Configuration unique — une seule fois.<br>
+      Copie le bloc <code style="background:var(--surface2);padding:.1rem .4rem;border-radius:4px;font-size:.85rem">firebaseConfig</code> depuis la console Firebase et colle-le ci-dessous.
+    </div>
+
+    <div class="setup-step">
+      <div class="setup-step-title">📋 Colle ton bloc firebaseConfig ici</div>
+      <textarea class="setup-textarea" id="pasteArea" placeholder='Colle ici le bloc complet, par exemple :
+
+const firebaseConfig = {
+  apiKey: "AIzaSy...",
+  authDomain: "mon-projet.firebaseapp.com",
+  databaseURL: "https://mon-projet-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "mon-projet",
+  storageBucket: "mon-projet.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abc123"
+};'></textarea>
+      <button class="btn-parse" onclick="pasteFullConfig()">✅ Extraire les valeurs</button>
+    </div>
+
+    <div class="setup-fields" id="manualFields">
+      <div class="setup-step">
+        <div class="setup-step-title">🔍 Vérifie les valeurs extraites</div>
+        <div class="setup-field-row"><span class="setup-field-label">apiKey</span><input class="setup-field-input" id="cfg_apiKey"></div>
+        <div class="setup-field-row"><span class="setup-field-label">authDomain</span><input class="setup-field-input" id="cfg_authDomain"></div>
+        <div class="setup-field-row"><span class="setup-field-label">databaseURL</span><input class="setup-field-input" id="cfg_databaseURL" placeholder="https://…-default-rtdb.…firebasedatabase.app"></div>
+        <div class="setup-field-row"><span class="setup-field-label">projectId</span><input class="setup-field-input" id="cfg_projectId"></div>
+        <div class="setup-field-row"><span class="setup-field-label">storageBucket</span><input class="setup-field-input" id="cfg_storageBucket"></div>
+        <div class="setup-field-row"><span class="setup-field-label">messagingSenderId</span><input class="setup-field-input" id="cfg_messagingSenderId"></div>
+        <div class="setup-field-row"><span class="setup-field-label">appId</span><input class="setup-field-input" id="cfg_appId"></div>
+      </div>
+    </div>
+
+    <!-- Champs cachés au cas où pas de paste -->
+    <div id="hiddenFields" style="display:none">
+      <input id="cfg_apiKey_h" /><input id="cfg_authDomain_h" /><input id="cfg_databaseURL_h" />
+      <input id="cfg_projectId_h" /><input id="cfg_storageBucket_h" />
+      <input id="cfg_messagingSenderId_h" /><input id="cfg_appId_h" />
+    </div>
+
+    <div class="setup-err" id="setupErr"></div>
+    <button id="setupBtn" onclick="confirmSetup()">🚀 Connecter à Firebase</button>
+    <div class="setup-help">
+      Besoin d'aide ? Consulte le <strong>GUIDE_FIREBASE.md</strong> fourni avec ce fichier.<br>
+      Étapes 1→3 pour obtenir ta config.
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginScreen" style="display:none">
+  <div class="login-box">
+    <div class="login-logo">Suivi <span>Prescriptions</span></div>
+    <div class="login-sub">Accès réservé</div>
+    <input type="password" id="pwdInput" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Connexion</button>
+    <div class="login-err" id="loginErr">❌ Mot de passe incorrect</div>
+    <div style="text-align:center;margin-top:1rem">
+      <button onclick="resetConfig()" style="background:none;border:none;color:var(--muted);font-size:.75rem;cursor:pointer;text-decoration:underline">Changer de base Firebase</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="logo">Suivi <span>Prescriptions</span></div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showSection('weekly')">📅 Semaine</button>
+      <button class="nav-tab" onclick="showSection('historique')">📊 Historique</button>
+      <button class="nav-tab" onclick="showSection('groupes')">👥 Groupes</button>
+      <button class="nav-tab" onclick="showSection('admin')" id="adminTab" style="display:none">⚙️ Admin</button>
+    </div>
+    <div class="topbar-right">
+      <span class="badge-user" id="userBadge">—</span>
+      <button onclick="openMyPassword()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);padding:.3rem .75rem;border-radius:2px;font-size:.75rem;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s" title="Changer mon mot de passe">🔑</button>
+      <button class="btn-logout" onclick="logout()">Déconnexion</button>
+    </div>
+  </div>
+
+  <!-- WEEKLY SECTION -->
+  <div class="section active" id="s-weekly">
+    <div class="week-header">
+      <div>
+        <div class="week-title" id="weekTitle">Semaine en cours</div>
+        <div class="week-range" id="weekRange"></div>
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn-import" style="background:var(--text-secondary)" onclick="closeCurrentWeek()">🔒 Clôturer</button>
+        <button class="btn-import" style="background:var(--green)" onclick="reopenCurrentWeek()">🔓 Réouvrir</button>
+        <button class="btn-import" style="background:var(--yellow)" onclick="resetCurrentWeek()">↺ Remettre à 0</button>
+        <button class="btn-import" style="background:var(--red)" onclick="deleteCurrentWeek()">🗑 Supprimer</button>
+        <button class="btn-import" style="background:var(--green);border:1px solid var(--green-border)" onclick="openManualSignature()">✍️ Ajouter une signature</button>
+        <button class="btn-import" onclick="openImport()">⬆ Importer</button>
+      </div>
+    </div>
+
+    <div class="week-list" id="weekList"></div>
+
+    <!-- Stats semaine courante -->
+    <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.6rem">📅 Semaine en cours</div>
+    <div class="stats-bar" id="statsBar">
+      <div class="stat-card"><div class="stat-label">RDV Total</div><div class="stat-value" id="st-total">—</div></div>
+      <div class="stat-card"><div class="stat-label">Signés</div><div class="stat-value green" id="st-signed">—</div></div>
+      <div class="stat-card"><div class="stat-label">Taux signature</div><div class="stat-value" id="st-txsign" style="font-size:1.3rem">—</div></div>
+      <div class="stat-card"><div class="stat-label">Décalés</div><div class="stat-value yellow" id="st-decale">—</div></div>
+      <div class="stat-card"><div class="stat-label">Taux R3</div><div class="stat-value blue" id="st-txr3" style="font-size:1.3rem">—</div></div>
+      <div class="stat-card"><div class="stat-label">Com. argumentée</div><div class="stat-value" id="st-com-arg" style="font-size:1rem;color:var(--gold)">—</div></div>
+      <div class="stat-card"><div class="stat-label">Com. signée</div><div class="stat-value accent" id="st-com">—</div></div>
+    </div>
+
+    <!-- Stats mois courant (collapsible) -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:.75rem 0 .5rem;cursor:pointer" onclick="toggleMonthStats()">
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">📆 Mois en cours</div>
+      <span id="monthStatsToggle" style="font-size:.8rem;color:var(--muted)">▼ Réduire</span>
+    </div>
+    <div id="monthStatsBar" class="stats-bar">
+      <div class="stat-card"><div class="stat-label">RDV Total mois</div><div class="stat-value" id="mst-total">—</div></div>
+      <div class="stat-card"><div class="stat-label">Signés mois</div><div class="stat-value green" id="mst-signed">—</div></div>
+      <div class="stat-card"><div class="stat-label">Décalés mois</div><div class="stat-value yellow" id="mst-decale">—</div></div>
+      <div class="stat-card"><div class="stat-label">R3 mois</div><div class="stat-value blue" id="mst-r3">—</div></div>
+      <div class="stat-card"><div class="stat-label">Com. arg. mois</div><div class="stat-value" id="mst-cu-arg" style="font-size:1rem;color:var(--gold)">—</div></div>
+      <div class="stat-card"><div class="stat-label">Com. signée mois</div><div class="stat-value accent" id="mst-com">—</div></div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="tbl-filter">
+        <input type="text" id="filterSearch" placeholder="🔍 Rechercher client / conseiller…" oninput="renderTable()" style="flex:1; min-width:180px;">
+        <select id="filterStatus" onchange="renderTable()">
+          <option value="">Tous les statuts</option>
+          <option value="none">— Sans statut</option>
+          <option value="decale">Décalé</option>
+          <option value="r3">R3</option>
+          <option value="signe">Signé</option>
+          <option value="nonqualif">Non qualifié</option>
+        </select>
+        <select id="filterConseiller" onchange="renderTable()">
+          <option value="">Tous les conseillers</option>
+        </select>
+        <select id="filterGroupe" onchange="filterByGroupe()">
+          <option value="">Tous les groupes</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="mainTable">
+          <thead>
+            <tr>
+              <th onclick="setSort('date')" style="cursor:pointer;user-select:none">Date ↕</th>
+              <th onclick="setSort('client')" style="cursor:pointer;user-select:none">Client ↕</th>
+              <th>Conseiller(s)</th>
+              <th onclick="setSort('cuArg')" style="cursor:pointer;user-select:none">Vol. Argumenté ↕</th>
+              <th onclick="setSort('status')" style="cursor:pointer;user-select:none">Statut ↕</th>
+              <th>Volumes signés</th>
+              <th onclick="setSort('com')" style="cursor:pointer;user-select:none">Commission ↕</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+          <tfoot id="tableFoot"></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORIQUE SECTION -->
+  <div class="section" id="s-historique">
+    <div class="week-header">
+      <div>
+        <div class="week-title">Historique & Stats</div>
+        <div class="week-range">Performance par mandataire · Décalés · Stats globales</div>
+      </div>
+    </div>
+
+    <!-- Sous-onglets -->
+    <div style="display:flex;gap:.5rem;margin-bottom:0;border-bottom:2px solid var(--border);padding-bottom:0">
+      <button class="hist-tab active" id="htab-mia" onclick="showHistTab('mia')">👤 Par mandataire</button>
+      <button class="hist-tab" id="htab-decale" onclick="showHistTab('decale')">📅 Décalés</button>
+      <button class="hist-tab" id="htab-stats" onclick="showHistTab('stats')">📊 Stats globales</button>
+    </div>
+
+    <!-- Filtres unifiés -->
+    <div class="hist-controls" style="margin-top:1rem;padding:.75rem 1rem;background:var(--surface2);border:1px solid var(--border);display:flex;flex-wrap:wrap;gap:.75rem;align-items:center">
+      <select id="histMonth" onchange="renderHistory()">
+        <option value="">Tous les mois</option>
+      </select>
+      <select id="histGroup" onchange="histGroupChanged()">
+        <option value="">Tous les groupes</option>
+      </select>
+      <select id="histMandataire" onchange="renderHistory()">
+        <option value="">Tous les mandataires</option>
+      </select>
+      <!-- Filtres supplémentaires pour Stats globales (cachés sur autres onglets) -->
+      <select id="statsWeekFilter" onchange="renderHistory()" style="display:none">
+        <option value="">Toutes les semaines</option>
+      </select>
+      <select id="statsPeriodFilter" onchange="renderHistory()" style="display:none">
+        <option value="">Toutes les périodes</option>
+        <option value="current_week">Semaine en cours</option>
+        <option value="current_month">Mois en cours</option>
+      </select>
+      <input type="text" id="histSearch" placeholder="🔍 Rechercher…" oninput="renderHistory()" style="min-width:160px;">
+    </div>
+
+    <!-- TAB: Par mandataire -->
+    <div id="histPane-mia" style="margin-top:1.5rem">
+      <div id="monthSummary" style="margin-bottom:1.5rem"></div>
+      <div class="hist-grid" id="histGrid"></div>
+    </div>
+
+    <!-- TAB: Décalés -->
+    <div id="histPane-decale" style="display:none;margin-top:1.5rem">
+      <div id="decaleGrid"></div>
+    </div>
+
+    <!-- TAB: Stats globales -->
+    <div id="histPane-stats" style="display:none;margin-top:1.5rem">
+      <div id="statsGlobalGrid"></div>
+    </div>
+  </div>
+
+  <!-- GROUPES SECTION -->
+  <div class="section" id="s-groupes">
+    <div class="week-header">
+      <div>
+        <div class="week-title">Gestion des groupes</div>
+        <div class="week-range">Référents techniques (RT) · Mandataires indépendants (MIA)</div>
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn-import" style="background:#dc2626" onclick="deleteAllGroups()">🗑 Tout supprimer</button>
+        <button class="btn-import" onclick="openAddGroup()">+ Créer un groupe</button>
+      </div>
+    </div>
+
+    <!-- Vue d'ensemble : grille de toutes les cartes groupe -->
+    <div id="groupsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.25rem"></div>
+  </div>
+
+  <!-- ADMIN SECTION -->
+  <div class="section" id="s-admin">
+    <div class="week-header">
+      <div>
+        <div class="week-title">⚙️ Administration</div>
+        <div class="week-range">Gestion des accès · Journal de connexions</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;flex-wrap:wrap" id="adminLayout">
+
+      <!-- USERS PANEL -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem">
+        <div style="font-family:Syne,sans-serif;font-weight:700;margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:center">
+          👤 Comptes utilisateurs
+          <button onclick="openAddUser()" style="background:var(--accent);color:#fff;border:none;padding:.4rem .9rem;border-radius:8px;font-size:.82rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">+ Ajouter</button>
+        </div>
+        <div id="userList"></div>
+      </div>
+
+      <!-- LOG PANEL -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem">
+        <div style="font-family:Syne,sans-serif;font-weight:700;margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:center">
+          📋 Journal de connexions
+          <button onclick="clearLogs()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:.4rem .9rem;border-radius:8px;font-size:.82rem;cursor:pointer;font-family:'DM Sans',sans-serif">Vider</button>
+        </div>
+        <div id="logList" style="max-height:420px;overflow-y:auto"></div>
+      </div>
+
+    </div>
+
+    <!-- Mandataires -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-top:1.5rem">
+      <div style="font-weight:700;margin-bottom:1rem;font-size:.95rem;display:flex;justify-content:space-between;align-items:center">
+        👤 Mandataires actifs
+        <span style="font-size:.75rem;color:var(--muted);font-weight:400">🗑 = supprimer définitivement du système</span>
+      </div>
+      <div id="advisorList" style="display:flex;flex-wrap:wrap;gap:.5rem"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ADD USER MODAL -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal">
+    <h3>👤 Nouvel utilisateur</h3>
+    <div class="form-group">
+      <label>Nom affiché</label>
+      <input type="text" id="newUserName" placeholder="Prénom NOM">
+    </div>
+    <div class="form-group">
+      <label>Mot de passe</label>
+      <input type="password" id="newUserPwd" placeholder="Choisir un mot de passe fort">
+    </div>
+    <div class="form-group">
+      <label>Confirmer le mot de passe</label>
+      <input type="password" id="newUserPwd2" placeholder="Répéter le mot de passe">
+    </div>
+    <div class="form-group">
+      <label>Rôle</label>
+      <select id="newUserRole">
+        <option value="user">Utilisateur</option>
+        <option value="rt">RT — Référent Technique</option>
+        <option value="admin">Administrateur</option>
+      </select>
+    </div>
+    <div id="addUserErr" style="color:var(--red);font-size:.82rem;display:none;margin-top:.5rem"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('addUserModal').classList.remove('open')">Annuler</button>
+      <button class="btn-confirm" onclick="confirmAddUser()">Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MON MOT DE PASSE MODAL -->
+<div class="modal-overlay" id="myPwdModal">
+  <div class="modal">
+    <h3>🔑 Changer mon mot de passe</h3>
+    <div class="form-group">
+      <label>Mot de passe actuel</label>
+      <input type="password" id="myPwdCurrent" placeholder="Mot de passe actuel">
+    </div>
+    <div class="form-group">
+      <label>Nouveau mot de passe</label>
+      <input type="password" id="myPwdNew" placeholder="Nouveau mot de passe (min. 6 caractères)">
+    </div>
+    <div class="form-group">
+      <label>Confirmer</label>
+      <input type="password" id="myPwdNew2" placeholder="Répéter le nouveau mot de passe">
+    </div>
+    <div id="myPwdErr" style="color:var(--red);font-size:.82rem;display:none;background:var(--red-bg);padding:.5rem .8rem;margin-top:.5rem"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('myPwdModal').classList.remove('open')">Annuler</button>
+      <button class="btn-confirm" onclick="confirmMyPassword()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PWD MODAL (admin) -->
+<div class="modal-overlay" id="changePwdModal">
+  <div class="modal">
+    <h3>🔑 Changer le mot de passe</h3>
+    <input type="hidden" id="changePwdUserId">
+    <div class="form-group">
+      <label>Nouveau mot de passe</label>
+      <input type="password" id="changePwdNew" placeholder="Nouveau mot de passe">
+    </div>
+    <div class="form-group">
+      <label>Confirmer</label>
+      <input type="password" id="changePwdNew2" placeholder="Répéter">
+    </div>
+    <div id="changePwdErr" style="color:var(--red);font-size:.82rem;display:none;margin-top:.5rem"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('changePwdModal').classList.remove('open')">Annuler</button>
+      <button class="btn-confirm" onclick="confirmChangePwd()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- SIGNATURE MANUELLE MODAL -->
+<div class="modal-overlay" id="manualSignModal">
+  <div class="modal" style="max-width:520px">
+    <h3>✍️ Ajouter une signature manuelle</h3>
+    <p style="font-size:.82rem;color:var(--text-secondary);margin-bottom:1.25rem;line-height:1.5">Le MIA a signé en dehors d'un RDV planifié. Cette signature sera ajoutée à la semaine en cours avec le badge <strong>✍️ Ajout manuel</strong>.</p>
+    <div class="form-group">
+      <label>Nom du client</label>
+      <input type="text" id="msClient" placeholder="NOM Prénom">
+    </div>
+    <div class="form-group">
+      <label>Mandataire (MIA)</label>
+      <select id="msConseiller">
+        <option value="">— Sélectionner un MIA —</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Justification</label>
+      <input type="text" id="msJustif" placeholder="Ex: Signature hors RDV, client apporté par le réseau…">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:1rem">
+      <div class="form-group" style="margin:0">
+        <label>CU signé (€)</label>
+        <input type="number" id="msCu" min="0" step="100" placeholder="0">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>PER signé (€)</label>
+        <input type="number" id="msPer" min="0" step="100" placeholder="0">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>VREG signé (€)</label>
+        <input type="number" id="msVg" min="0" step="100" placeholder="0">
+      </div>
+    </div>
+    <div id="msComPreview" style="background:var(--gold-bg);border:1px solid var(--gold-border);padding:.6rem 1rem;font-size:.85rem;color:var(--gold);font-weight:600;text-align:center;margin-bottom:.75rem;display:none"></div>
+    <div id="msErr" style="color:var(--red);font-size:.82rem;display:none;background:var(--red-bg);padding:.5rem .8rem;border-radius:2px;margin-bottom:.5rem"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('manualSignModal').classList.remove('open')">Annuler</button>
+      <button class="btn-confirm" style="background:var(--green);border:1px solid var(--green-border)" onclick="confirmManualSignature()">✅ Valider la signature</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <h3>📂 Importer une semaine</h3>
+    <div class="form-group">
+      <label>Nom de la semaine (ex: 04/05 - 10/05/2026)</label>
+      <input type="text" id="importWeekName" placeholder="04/05 - 10/05/2026">
+    </div>
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <div class="drop-icon">📊</div>
+      <div class="drop-text">Cliquez ou glissez votre fichier Excel ici</div>
+      <div id="dropFileName" style="margin-top:.5rem; color:var(--green); font-weight:600;"></div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="handleFile(this)">
+    </div>
+    <div id="importError" style="color:var(--red);font-size:.82rem;margin-top:.5rem;display:none;padding:.5rem;background:var(--red-bg)"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeImport()">Annuler</button>
+      <button class="btn-confirm" id="importBtn" onclick="confirmImport()" disabled style="opacity:.4;cursor:not-allowed">Importer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD GROUP MODAL -->
+<div class="modal-overlay" id="addGroupModal">
+  <div class="modal">
+    <h3>➕ Nouveau groupe</h3>
+    <div class="form-group">
+      <label>Nom du groupe</label>
+      <input type="text" id="newGroupName" placeholder="Ex: Groupe Bretagne…">
+    </div>
+    <div class="form-group">
+      <label>RT — Référent Technique</label>
+      <input type="text" id="newGroupRT" placeholder="Prénom NOM du RT">
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('addGroupModal').classList.remove('open')">Annuler</button>
+      <button class="btn-confirm" onclick="createGroup()">Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- R3 MODAL -->
+<div class="modal-overlay" id="r3Modal">
+  <div class="modal">
+    <h3>🔄 Repositionnement R3</h3>
+    <input type="hidden" id="r3RowIdx">
+    <div class="form-group">
+      <label>Date de repositionnement</label>
+      <input type="date" id="r3DateInput">
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('r3Modal').classList.remove('open');renderTable()">Annuler</button>
+      <button class="btn-confirm" onclick="confirmR3()">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- DÉCALÉ MODAL -->
+<div class="modal-overlay" id="decaleModal">
+  <div class="modal">
+    <h3>📅 RDV Décalé</h3>
+    <input type="hidden" id="decaleRowIdx">
+    <div class="form-group">
+      <label>Justification (obligatoire)</label>
+      <input type="text" id="decaleNote" placeholder="Ex: Client indisponible, repositionné en juin…">
+    </div>
+    <div class="form-group">
+      <label>Date de repositionnement prévue</label>
+      <input type="date" id="decaleRepoDate">
+    </div>
+    <div class="form-group">
+      <label>Délai avant prochaine alerte si non repositionné (jours)</label>
+      <input type="number" id="decaleDelay" value="14" min="1" max="90">
+    </div>
+    <div id="decaleModalErr" style="color:var(--red);font-size:.82rem;display:none;background:var(--red-bg);padding:.5rem .8rem;border-radius:7px;margin-top:.5rem"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('decaleModal').classList.remove('open');renderTable()">Annuler</button>
+      <button class="btn-confirm" onclick="confirmDecale()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- NON QUALIFIÉ MODAL -->
+<div class="modal-overlay" id="nonqualifModal">
+  <div class="modal">
+    <h3>❌ Non qualifié</h3>
+    <input type="hidden" id="nonqualifRowIdx">
+    <div class="form-group">
+      <label>Motif de non qualification</label>
+      <input type="text" id="nonqualifNote" placeholder="Ex: Client non éligible, mauvais profil…">
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('nonqualifModal').classList.remove('open');renderTable()">Annuler</button>
+      <button class="btn-confirm" onclick="confirmNonQualif()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ======================== FIREBASE CONFIG DYNAMIQUE ========================
+function getConfig() {
+  try { return JSON.parse(localStorage.getItem('fb_config') || 'null'); } catch(e) { return null; }
+}
+function saveConfig(cfg) { localStorage.setItem('fb_config', JSON.stringify(cfg)); }
+
+function loadFirebase(cfg) {
+  if (firebase.apps.length) firebase.apps.forEach(a => a.delete());
+  const app = firebase.initializeApp(cfg);
+  window._db = firebase.database();
+  window._firebaseReady = true;
+}
+
+async function fbGet(path) {
+  const snap = await _db.ref(path).get();
+  return snap.exists() ? snap.val() : null;
+}
+async function fbSet(path, val) { await _db.ref(path).set(val); }
+async function fbPush(path, val) { await _db.ref(path).push(val); }
+function fbListen(path, cb) { _db.ref(path).on('value', snap => cb(snap.exists() ? snap.val() : null)); }
+
+async function startApp() {
+  // Config Firebase intégrée directement — plus besoin de setup
+  const cfg = {
+    apiKey: "AIzaSyDXMnhgBZ4eU6pUGWJqHEWVnX0dWICPYkM",
+    authDomain: "suivi-hebdo-9670d.firebaseapp.com",
+    databaseURL: "https://suivi-hebdo-9670d-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "suivi-hebdo-9670d",
+    storageBucket: "suivi-hebdo-9670d.firebasestorage.app",
+    messagingSenderId: "934111580535",
+    appId: "1:934111580535:web:430c9c670caa6583cc5172"
+  };
+  try {
+    loadFirebase(cfg);
+    document.getElementById('setupScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+  } catch(e) {
+    document.getElementById('setupScreen').style.display = 'flex';
+    document.getElementById('setupErr').textContent = '⚠️ Erreur Firebase : ' + e.message;
+    document.getElementById('setupErr').style.display = 'block';
+  }
+}
+
+async function confirmSetup() {
+  const fields = ['apiKey','authDomain','databaseURL','projectId','storageBucket','messagingSenderId','appId'];
+  const cfg = {};
+  for (const f of fields) {
+    const val = document.getElementById('cfg_' + f).value.trim();
+    if (!val) { showSetupErr('Tous les champs sont obligatoires.'); return; }
+    cfg[f] = val;
+  }
+  if (!cfg.databaseURL.includes('firebasedatabase') && !cfg.databaseURL.includes('firebaseio.com')) {
+    showSetupErr('Le champ "databaseURL" semble incorrect.');
+    return;
+  }
+  const btn = document.getElementById('setupBtn');
+  btn.textContent = 'Connexion en cours…'; btn.disabled = true;
+  try {
+    loadFirebase(cfg);
+    await fbGet('ping');
+    saveConfig(cfg);
+    document.getElementById('setupScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+  } catch(e) {
+    showSetupErr('Impossible de se connecter. Vérifie ta config Firebase et les règles de sécurité.');
+  }
+  btn.textContent = 'Connecter'; btn.disabled = false;
+}
+
+function showSetupErr(msg) {
+  const el = document.getElementById('setupErr');
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = 'block';
+}
+
+function pasteFullConfig() {
+  const raw = document.getElementById('pasteArea').value;
+  const patterns = {
+    apiKey: /apiKey:\s*["']([^"']+)["']/,
+    authDomain: /authDomain:\s*["']([^"']+)["']/,
+    databaseURL: /databaseURL:\s*["']([^"']+)["']/,
+    projectId: /projectId:\s*["']([^"']+)["']/,
+    storageBucket: /storageBucket:\s*["']([^"']+)["']/,
+    messagingSenderId: /messagingSenderId:\s*["']([^"']+)["']/,
+    appId: /appId:\s*["']([^"']+)["']/,
+  };
+  let found = 0;
+  for (const [key, regex] of Object.entries(patterns)) {
+    const match = raw.match(regex);
+    if (match) { document.getElementById('cfg_' + key).value = match[1]; found++; }
+  }
+  if (found === 0) {
+    showSetupErr('Aucune valeur trouvée. Colle bien le bloc firebaseConfig complet.');
+  } else {
+    document.getElementById('setupErr').style.display = 'none';
+    document.getElementById('manualFields').style.display = 'block';
+    document.getElementById('pasteArea').style.borderColor = 'var(--green)';
+  }
+}
+
+function resetConfig() {
+  if (!confirm('Réinitialiser la configuration Firebase ?')) return;
+  localStorage.removeItem('fb_config');
+  location.reload();
+}
+
+window.addEventListener('DOMContentLoaded', startApp);
+
+async function fbGet(path) {
+  const snap = await _db.ref(path).get();
+  return snap.exists() ? snap.val() : null;
+}
+async function fbSet(path, val) { await _db.ref(path).set(val); }
+async function fbPush(path, val) { await _db.ref(path).push(val); }
+function fbListen(path, cb) { _db.ref(path).on('value', snap => cb(snap.exists() ? snap.val() : null)); }
+
+// ======================== AUTH / SHA-256 ========================
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// Hash SHA-256 de "Admin2026!" — mot de passe admin par défaut
+const ADMIN_HASH = "6016b07de2b96bd280d99828e4dc83654a042afc5f4cd4608263d0df4ab6ed35";
+
+async function ensureAdminExists() {
+  const users = await fbGet('users');
+  if (!users) {
+    await fbSet('users/admin', {
+      id: 'admin', name: 'Admin', role: 'admin',
+      hash: ADMIN_HASH, createdAt: new Date().toISOString()
+    });
+  }
+}
+
+async function getUsers() {
+  const u = await fbGet('users');
+  return u ? Object.values(u) : [];
+}
+async function saveUser(user) { await fbSet('users/' + user.id, user); }
+async function deleteUserFb(uid) { await _db.ref('users/' + uid).remove(); }
+async function addLog(entry) { await fbPush('logs', { ...entry, ts: new Date().toISOString() }); }
+async function getLogs() {
+  const l = await fbGet('logs');
+  if (!l) return [];
+  return Object.values(l).sort((a,b) => b.ts.localeCompare(a.ts)).slice(0, 200);
+}
+async function clearLogsFb() { await fbSet('logs', null); }
+
+// ======================== STATE ========================
+let state = {
+  currentUser: null,
+  activeWeek: null,
+  weeks: {},
+  annotations: {},
+  groups: [],
+  selectedGroup: null,
+};
+
+// Sauvegarde dans Firebase
+async function saveState() {
+  // Firebase ne gère pas bien les tableaux — on sauvegarde groups comme objet indexé
+  const groupsObj = {};
+  (state.groups||[]).filter(Boolean).forEach((g, i) => { groupsObj['g' + i] = g; });
+  await fbSet('appData/weeks', state.weeks);
+  await fbSet('appData/annotations', state.annotations || {});
+  await fbSet('appData/groups', Object.keys(groupsObj).length ? groupsObj : { _empty: true });
+}
+
+// Charge depuis Firebase + écoute les changements en temps réel
+function listenState() {
+  fbListen('appData', data => {
+    if (!data) return;
+    state.weeks = data.weeks || {};
+    state.annotations = data.annotations || {};
+    if (!data.groups || data.groups._empty) state.groups = [];
+    else state.groups = Object.values(data.groups).filter(g => g && g.id);
+    if (!state.activeWeek && Object.keys(state.weeks).length) {
+      state.activeWeek = Object.keys(state.weeks)[0];
+    }
+    if (state.currentUser) {
+      // Ne pas re-render si l'utilisateur tape dans un champ volume
+      if (_editingRow !== null) return;
+      renderWeekList();
+      renderTable();
+      populateConseillerFilter();
+      populateHistoryFilters();
+      populateGroupeFilter();
+    }
+  });
+}
+
+// ======================== LOGIN ========================
+async function doLogin() {
+  const pwd = document.getElementById('pwdInput').value;
+  if (!pwd) return;
+  const loginBtn = document.querySelector('.login-btn');
+  const errEl = document.getElementById('loginErr');
+  loginBtn.textContent = '…';
+  loginBtn.disabled = true;
+  errEl.style.display = 'none';
+  errEl.textContent = '❌ Mot de passe incorrect';
+  try {
+    await ensureAdminExists();
+    const hash = await sha256(pwd);
+    const users = await getUsers();
+    const user = users.find(u => u.hash === hash);
+    if (user) {
+      state.currentUser = user;
+      // Si le rôle est RT, on filtre automatiquement sur son groupe
+      if (user.role === 'rt') {
+        const myGroup = (state.groups||[]).find(g => g.rt === user.name || g.ref === user.name);
+        state._rtGroupFilter = myGroup ? myGroup.id : null;
+        state._groupeFilter = myGroup ? myGroup.members : null;
+      } else {
+        state._rtGroupFilter = null;
+      }
+      try { await addLog({ user: user.name, role: user.role, action: 'Connexion' }); } catch(e){}
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('userBadge').textContent = user.name;
+      if (user.role === 'admin') document.getElementById('adminTab').style.display = '';
+      document.getElementById('userBadge').textContent = user.name + (user.role === 'rt' ? ' · RT' : user.role === 'admin' ? ' · Admin' : '');
+      listenState();
+      try {
+        const existing = await fbGet('appData/weeks');
+        if (!existing) {
+          state.weeks = { 'w_04052026': { name: '04/05 - 10/05/2026', range: '04 mai – 10 mai 2026', rows: INITIAL_DATA } };
+          state.activeWeek = 'w_04052026';
+          await saveState();
+        }
+      } catch(e) {}
+      initApp();
+    } else {
+      try { await addLog({ user: '?', role: '?', action: 'Échec connexion' }); } catch(e){}
+      errEl.textContent = '❌ Mot de passe incorrect';
+      errEl.style.display = 'block';
+      setTimeout(() => errEl.style.display = 'none', 2500);
+    }
+  } catch(e) {
+    console.error('Login error:', e);
+    errEl.textContent = '⚠️ Erreur Firebase : ' + (e.message || e);
+    errEl.style.display = 'block';
+  } finally {
+    loginBtn.textContent = 'Connexion';
+    loginBtn.disabled = false;
+  }
+}
+
+async function logout() {
+  await addLog({ user: state.currentUser?.name||'?', role: state.currentUser?.role||'?', action: 'Déconnexion' });
+  state.currentUser = null;
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('adminTab').style.display = 'none';
+  document.getElementById('pwdInput').value = '';
+}
+
+function clearLogs() {
+  if (!confirm('Vider tout le journal ?')) return;
+  clearLogsFb().then(() => renderAdminLogs());
+}
+
+// ======================== INITIAL DATA ========================
+const INITIAL_DATA = [{"date":"04/05/2026 12:00","client":"ROBERT SEVERINE","conseillers":"LEGENDRE ALEXANDRE","type":"R2","cu":0,"per":0,"vg":0},{"date":"04/05/2026 16:00","client":"COUDRAY DAMIEN","conseillers":"MANNEHEUT GWENDAL, GUILLOU MATHIS","type":"R2","cu":5000,"per":0,"vg":0},{"date":"04/05/2026 17:30","client":"HUON-DEHOUX CELINE","conseillers":"LE GUEN ENZO, GAILLARD EVA","type":"R2","cu":10000,"per":0,"vg":0},{"date":"04/05/2026 18:30","client":"Gadhab Romain","conseillers":"LAMBROUIN THIBAUT","type":"R2","cu":0,"per":4800,"vg":1200},{"date":"04/05/2026 18:30","client":"MONIE CARLA","conseillers":"NALPAS REMI","type":"R2","cu":0,"per":4700,"vg":0},{"date":"04/05/2026 18:30","client":"Fedirko Thibaud","conseillers":"NOUE CLEMENT","type":"R2","cu":10000,"per":0,"vg":3600},{"date":"04/05/2026 18:30","client":"MOREL ANAIS","conseillers":"LEGENDRE ALEXANDRE","type":"R2","cu":13000,"per":0,"vg":0},{"date":"04/05/2026 18:30","client":"JEGOUSSE ELOISE","conseillers":"GUILLOU MATHIS, REGENT LOGAN","type":"R2","cu":0,"per":0,"vg":0},{"date":"04/05/2026 18:30","client":"MOREAU Pascal","conseillers":"RAULT ESTELLE","type":"R2","cu":0,"per":0,"vg":0},{"date":"04/05/2026 20:00","client":"GIRARD SEBASTIEN","conseillers":"REGENT LOGAN","type":"R2","cu":0,"per":0,"vg":0},{"date":"05/05/2026 08:45","client":"L'homme Gautier Marie","conseillers":"LEMARIE JULIE, CASTEL ALEXIS","type":"R2","cu":0,"per":0,"vg":0},{"date":"05/05/2026 09:00","client":"GUILLEMOIS ERIC","conseillers":"LEBRETON JEREMY, LE GUEN ENZO","type":"R2","cu":100000,"per":4800,"vg":0},{"date":"05/05/2026 10:00","client":"Legallais Françoise","conseillers":"HAMON MAXIME, RAULT ESTELLE","type":"R2","cu":200000,"per":0,"vg":3600},{"date":"05/05/2026 11:00","client":"DELIN JEAN LOUIS","conseillers":"GUILLOU MATHIS","type":"R2","cu":100000,"per":0,"vg":0},{"date":"05/05/2026 11:00","client":"Rohon Mathilde","conseillers":"LEMARIE JULIE, CASTEL ALEXIS","type":"R2","cu":5000,"per":1200,"vg":600},{"date":"05/05/2026 14:00","client":"NICOLAI Rodolphe","conseillers":"LEMARIE JULIE, CASTEL ALEXIS","type":"R2","cu":0,"per":0,"vg":0},{"date":"05/05/2026 14:00","client":"Guerra Maxime","conseillers":"LEBRETON JEREMY, GAILLARD EVA","type":"R2","cu":44000,"per":1200,"vg":1200},{"date":"05/05/2026 16:00","client":"BERTHELOT GAELLE","conseillers":"QUEFFELEC LEA","type":"R2","cu":10000,"per":0,"vg":0},{"date":"05/05/2026 16:00","client":"Moallic Thomas","conseillers":"RAULT ESTELLE","type":"R2","cu":0,"per":0,"vg":0},{"date":"05/05/2026 16:00","client":"DAUMER DAVID","conseillers":"LARCHER MATHIS, MARCEL GUILLAUME","type":"R2","cu":60000,"per":0,"vg":1200},{"date":"05/05/2026 18:00","client":"TRUTIN CHRISTINE","conseillers":"LEBRETON JEREMY","type":"R2","cu":50000,"per":0,"vg":2400},{"date":"05/05/2026 18:00","client":"Perly Marie","conseillers":"HAMON MAXIME","type":"R2","cu":5000,"per":1800,"vg":0},{"date":"05/05/2026 18:00","client":"Blanchet Nicolas","conseillers":"NOUE CLEMENT","type":"R2","cu":10000,"per":2400,"vg":0},{"date":"05/05/2026 19:30","client":"Jolly Sonia","conseillers":"RAULT ESTELLE","type":"R2","cu":10000,"per":0,"vg":0},{"date":"06/05/2026 09:00","client":"Page Aurore","conseillers":"LAMBROUIN THIBAUT, RAKOTOANOSY PORCHER BENOIT","type":"R2","cu":3000,"per":600,"vg":0},{"date":"06/05/2026 11:00","client":"MARQUER MAUDE","conseillers":"GAILLARD EVA","type":"R2","cu":24000,"per":1200,"vg":1200},{"date":"06/05/2026 11:30","client":"berhault philippe","conseillers":"NOUE CLEMENT, ANNEZO LOUIS","type":"R2","cu":0,"per":0,"vg":0},{"date":"06/05/2026 11:30","client":"LEBRET VANESSA","conseillers":"BOLLOT ANTOINE","type":"R2","cu":0,"per":0,"vg":0},{"date":"06/05/2026 12:00","client":"Lefevre Morgan","conseillers":"LAMBROUIN THIBAUT, RAKOTOANOSY PORCHER BENOIT","type":"R2","cu":0,"per":1800,"vg":0},{"date":"06/05/2026 12:00","client":"LEJEUNE NATHAN","conseillers":"NALPAS REMI","type":"R2","cu":5000,"per":2400,"vg":0},{"date":"06/05/2026 14:00","client":"GUILLAUME VICTORIEN","conseillers":"GAILLARD EVA","type":"R2","cu":0,"per":4800,"vg":0},{"date":"06/05/2026 14:00","client":"MICHAUD SANDRINE","conseillers":"BESNOUX AXELLE","type":"R2","cu":24000,"per":0,"vg":0},{"date":"06/05/2026 14:00","client":"CARRÉ Stevan","conseillers":"MONNET BRYAN, HERPIN MARINE","type":"R2","cu":0,"per":1200,"vg":2400},{"date":"06/05/2026 14:00","client":"CHEVALIER PIERRE","conseillers":"LEGENDRE ALEXANDRE, DE PIERREPONT THOMAS","type":"R2","cu":63000,"per":4702,"vg":0},{"date":"06/05/2026 15:59","client":"chevalier kevin","conseillers":"NALPAS REMI","type":"R2","cu":50000,"per":0,"vg":0},{"date":"06/05/2026 16:00","client":"SINSON ST ALBIN EMILIE","conseillers":"GAILLARD EVA","type":"R2","cu":0,"per":1200,"vg":600},{"date":"06/05/2026 16:00","client":"Labbé Jean-Baptiste","conseillers":"BESNOUX AXELLE","type":"R2","cu":30000,"per":6000,"vg":0},{"date":"06/05/2026 16:30","client":"Duval Camille","conseillers":"RAULT ESTELLE","type":"R2","cu":0,"per":4700,"vg":0},{"date":"06/05/2026 17:30","client":"bazin stephanie","conseillers":"NOUE CLEMENT, ANNEZO LOUIS","type":"R2","cu":10000,"per":2400,"vg":0},{"date":"06/05/2026 18:00","client":"Robinard Angélique","conseillers":"MARCEL GUILLAUME","type":"R2","cu":0,"per":1200,"vg":1200},{"date":"06/05/2026 18:00","client":"BOUVET ROMAIN","conseillers":"BESNOUX AXELLE","type":"R2","cu":70000,"per":4800,"vg":7200},{"date":"06/05/2026 18:00","client":"BAHIER MARTIN","conseillers":"LAMBROUIN THIBAUT, RAKOTOANOSY PORCHER BENOIT","type":"R2","cu":100000,"per":1200,"vg":0},{"date":"06/05/2026 18:00","client":"BENOIST MATHIEU","conseillers":"GAILLARD EVA","type":"R2","cu":32000,"per":600,"vg":600},{"date":"06/05/2026 18:30","client":"FOURRE JEANNE","conseillers":"LEGENDRE ALEXANDRE, DE PIERREPONT THOMAS","type":"R2","cu":20000,"per":0,"vg":0},{"date":"06/05/2026 19:30","client":"Ravier Sandra","conseillers":"GUISET EMMA","type":"R2","cu":0,"per":0,"vg":0},{"date":"06/05/2026 20:30","client":"Gachet Mathis","conseillers":"GUISET EMMA","type":"R2","cu":0,"per":0,"vg":0},{"date":"07/05/2026 09:00","client":"Rakotoanosy Michel","conseillers":"GUISET EMMA, RAKOTOANOSY PORCHER BENOIT","type":"R2","cu":0,"per":0,"vg":0},{"date":"07/05/2026 10:00","client":"Axel Brun","conseillers":"RAULT ESTELLE, NOUE CLEMENT","type":"R2","cu":0,"per":2400,"vg":0},{"date":"07/05/2026 11:00","client":"Besson Aude","conseillers":"GUISET EMMA","type":"R2","cu":0,"per":0,"vg":0},{"date":"07/05/2026 11:00","client":"SIMON ROMAIN","conseillers":"REGENT LOGAN","type":"R2","cu":50000,"per":2400,"vg":1200},{"date":"07/05/2026 11:00","client":"massart ludovic","conseillers":"LE GUEN ENZO, MARCEL GUILLAUME","type":"R2","cu":0,"per":0,"vg":0},{"date":"07/05/2026 11:00","client":"Langhade Léa","conseillers":"HAMON MAXIME","type":"R2","cu":0,"per":3600,"vg":0},{"date":"07/05/2026 11:00","client":"Davy Annick","conseillers":"MONNET BRYAN","type":"R2","cu":136000,"per":0,"vg":0},{"date":"07/05/2026 11:00","client":"BENOIST JEAN CAMILLE","conseillers":"GUILLOU MATHIS","type":"R2","cu":20000,"per":4800,"vg":0},{"date":"07/05/2026 12:00","client":"Levacher Yves-Vincent","conseillers":"NOUE CLEMENT","type":"R2","cu":10000,"per":2400,"vg":0},{"date":"07/05/2026 12:15","client":"Carré Hélène","conseillers":"RAULT ESTELLE, NOUE CLEMENT","type":"R2","cu":0,"per":3600,"vg":0},{"date":"07/05/2026 14:00","client":"CORDONE ANDRE","conseillers":"BOLLOT ANTOINE","type":"R2","cu":0,"per":0,"vg":0},{"date":"07/05/2026 14:00","client":"REGENT SAMUEL","conseillers":"REGENT LOGAN","type":"R2","cu":0,"per":1200,"vg":0},{"date":"07/05/2026 14:30","client":"SAFFRAY PAULINE","conseillers":"LEGENDRE ALEXANDRE","type":"R2","cu":0,"per":2400,"vg":0},{"date":"07/05/2026 15:00","client":"Boittin Chantal","conseillers":"HAMON MAXIME","type":"R2","cu":100000,"per":0,"vg":6000},{"date":"07/05/2026 16:00","client":"DEGREZ MARYLINE","conseillers":"LE GUEN ENZO","type":"R2","cu":90000,"per":1200,"vg":0},{"date":"07/05/2026 17:00","client":"LEMESSAGER DAVID","conseillers":"NALPAS REMI","type":"R2","cu":50000,"per":0,"vg":0},{"date":"07/05/2026 18:00","client":"Cherel Eric","conseillers":"HAMON MAXIME","type":"R2","cu":60000,"per":2400,"vg":0},{"date":"07/05/2026 18:00","client":"briens jerome","conseillers":"NALPAS REMI, ANNEZO LOUIS","type":"R2","cu":0,"per":0,"vg":0},{"date":"07/05/2026 18:15","client":"RUBIN PIERRE","conseillers":"REGENT LOGAN","type":"R2","cu":13000,"per":0,"vg":0},{"date":"08/05/2026 09:00","client":"Foucher Emmanuel","conseillers":"LARCHER MATHIS, MARCEL GUILLAUME","type":"R2","cu":20000,"per":0,"vg":0},{"date":"08/05/2026 14:00","client":"Taburet Eric","conseillers":"NOUE CLEMENT","type":"R2","cu":160000,"per":4704,"vg":0}];
+
+function closeCurrentWeek() {
+  if (!state.activeWeek) return;
+  closeWeek(state.activeWeek);
+}
+
+async function reopenCurrentWeek() {
+  if (!state.activeWeek) return;
+  const w = state.weeks[state.activeWeek];
+  if (!w) return;
+  if (!confirm(`Réouvrir la semaine "${w.name}" ?`)) return;
+  w.closed = false;
+  delete w.closedAt;
+  await saveState();
+  renderWeekList();
+  renderTable();
+}
+
+async function resetCurrentWeek() {
+  if (!state.activeWeek) return;
+  const w = state.weeks[state.activeWeek];
+  if (!confirm(`Remettre à zéro tous les statuts de la semaine "${w?.name}" ? Les données Excel sont conservées.`)) return;
+  const wid = state.activeWeek;
+  // Supprimer toutes les annotations de cette semaine
+  Object.keys(state.annotations).forEach(k => { if (k.startsWith(wid + '_')) delete state.annotations[k]; });
+  // Sauvegarder dans Firebase AVANT de re-render (sinon listenState remet les anciennes valeurs)
+  await fbSet('appData/annotations', state.annotations || {});
+  renderTable();
+  updateStatsBar();
+  alert('Semaine remise à zéro.');
+}
+
+async function deleteCurrentWeek() {
+  if (!state.activeWeek) return;
+  const w = state.weeks[state.activeWeek];
+  if (!confirm(`Supprimer définitivement la semaine "${w?.name}" et toutes ses annotations ? Cette action est irréversible.`)) return;
+  const wid = state.activeWeek;
+  Object.keys(state.annotations).forEach(k => { if (k.startsWith(wid + '_')) delete state.annotations[k]; });
+  delete state.weeks[wid];
+  state.activeWeek = Object.keys(state.weeks)[0] || null;
+  await saveState();
+  renderWeekList();
+  renderTable();
+  populateConseillerFilter();
+  populateGroupeFilter();
+  populateHistoryFilters();
+  updateStatsBar();
+  // Si plus aucune semaine, reset le titre
+  if (!state.activeWeek) {
+    const t = document.getElementById('weekTitle');
+    if (t) t.textContent = 'Aucune semaine';
+    const r = document.getElementById('weekRange');
+    if (r) r.textContent = 'Importez une semaine pour commencer';
+  }
+}
+
+// populateDateFilter removed — date filter replaced by groupe filter
+
+function initApp() {
+  if (!state.activeWeek && Object.keys(state.weeks).length) {
+    state.activeWeek = Object.keys(state.weeks)[0];
+  }
+
+  // RT : appliquer les filtres automatiquement après chargement des données
+  if (state.currentUser?.role === 'rt') {
+    const myGroup = (state.groups||[]).find(g => g.rt === state.currentUser.name || g.ref === state.currentUser.name);
+    if (myGroup) {
+      state._groupeFilter = myGroup.members;
+      state._rtGroupFilter = myGroup.id;
+      // Pré-sélectionner le mois en cours dans l'historique
+      setTimeout(() => {
+        const w = state.weeks[state.activeWeek];
+        if (w) {
+          const mk = getMonthKey(w.name);
+          const sel = document.getElementById('histMonth');
+          if (sel) { sel.value = mk; }
+          // Pré-sélectionner le groupe du RT
+          const gSel = document.getElementById('histGroup');
+          if (gSel) { gSel.value = myGroup.id; populateHistMandataire(myGroup.id); }
+          const gf = document.getElementById('filterGroupe');
+          if (gf) { gf.value = myGroup.id; }
+        }
+      }, 500);
+    }
+  }
+
+  renderWeekList();
+  renderTable();
+  renderHistory();
+  renderGroups();
+  populateHistoryFilters();
+  populateConseillerFilter();
+  populateGroupeFilter();
+  setTimeout(checkAlerts, 2000);
+}
+
+// ======================== NAV ========================
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('active');
+  event.target.classList.add('active');
+  if (id === 'historique') { currentHistTab = currentHistTab || 'mia'; renderHistory(); }
+  if (id === 'groupes') renderGroups();
+  if (id === 'admin') { renderAdminUsers(); renderAdminLogs(); renderAdvisors(); }
+}
+
+// ======================== WEEK LIST ========================
+function renderWeekList() {
+  const el = document.getElementById('weekList');
+  el.innerHTML = Object.entries(state.weeks).map(([id, w]) =>
+    `<div class="week-chip ${id === state.activeWeek ? 'active' : ''}" onclick="selectWeek('${id}')">
+      ${w.closed ? '🔒 ' : ''}${w.name}
+    </div>`
+  ).join('');
+  const w = state.weeks[state.activeWeek];
+  if (w) {
+    document.getElementById('weekTitle').textContent = (w.closed ? '🔒 ' : '') + 'Semaine du ' + w.name;
+    document.getElementById('weekRange').textContent = w.range || '';
+  }
+}
+
+function selectWeek(id) {
+  state._groupeFilter = null;
+  state.activeWeek = id;
+  renderWeekList();
+  renderTable();
+  populateConseillerFilter();
+  populateGroupeFilter();
+}
+
+// ======================== ANNOTATION KEY ========================
+function aKey(rowIdx) { return state.activeWeek + '_' + rowIdx; }
+
+function getAnnotation(rowIdx) {
+  return state.annotations[aKey(rowIdx)] || { status: 'none', cu_s: 0, per_s: 0, vg_s: 0 };
+}
+
+function setAnnotation(rowIdx, field, value) {
+  const key = aKey(rowIdx);
+  if (!state.annotations[key]) state.annotations[key] = { status: 'none', cu_s: 0, per_s: 0, vg_s: 0 };
+  state.annotations[key][field] = value;
+  saveState(); // async, fire-and-forget
+  updateStatsBar();
+}
+
+// ======================== COMMISSION ========================
+function calcCom(cu, per, vg) { return cu * 0.035 + per * 0.25 + vg * 0.10; }
+function fmtCom(v) { return v === 0 ? '—' : v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' €'; }
+function fmtVol(v) { return v > 0 ? v.toLocaleString('fr-FR') + ' €' : '—'; }
+function fmtNum(v) { return Math.round(v).toLocaleString('fr-FR') + ' €'; }
+
+// ======================== TABLE ========================
+function populateConseillerFilter() {
+  const w = state.weeks[state.activeWeek];
+  if (!w) return;
+  const all = new Set();
+  w.rows.forEach(r => r.conseillers.split(',').forEach(c => all.add(c.trim())));
+  const sel = document.getElementById('filterConseiller');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Tous les conseillers</option>' +
+    [...all].sort().map(c => `<option value="${c}" ${c === cur ? 'selected' : ''}>${c}</option>`).join('');
+}
+
+function toggleMonthStats() {
+  const bar = document.getElementById('monthStatsBar');
+  const tog = document.getElementById('monthStatsToggle');
+  if (!bar || !tog) return;
+  const hidden = bar.style.display === 'none';
+  bar.style.display = hidden ? '' : 'none';
+  tog.textContent = hidden ? '▼ Réduire' : '▶ Afficher';
+}
+
+function filterByGroupe() {
+  const groupeF = document.getElementById('filterGroupe')?.value || '';
+  if (!groupeF) {
+    document.getElementById('filterConseiller').value = '';
+    renderTable(); return;
+  }
+  const grp = (state.groups||[]).find(g => g.id === groupeF);
+  // On filtre sur les membres du groupe — on vide le filtre conseiller individuel
+  document.getElementById('filterConseiller').value = '';
+  state._groupeFilter = grp ? grp.members : [];
+  renderTable();
+}
+
+function populateGroupeFilter() {
+  const sel = document.getElementById('filterGroupe');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Tous les groupes</option>' +
+    (state.groups||[]).map(g => `<option value="${g.id}" ${g.id===cur?'selected':''}>${g.name}</option>`).join('');
+}
+
+function getFilteredRows() {
+  const w = state.weeks[state.activeWeek];
+  if (!w) return [];
+  const search = document.getElementById('filterSearch').value.toLowerCase();
+  const statusF = document.getElementById('filterStatus').value;
+  const consF = document.getElementById('filterConseiller').value;
+  // Filtre groupe (accueil ou RT auto-filter)
+  const groupeMembers = state._groupeFilter || null;
+  return w.rows.map((r, i) => ({ ...r, _idx: i })).filter(r => {
+    const ann = getAnnotation(r._idx);
+    if (search && !r.client.toLowerCase().includes(search) && !r.conseillers.toLowerCase().includes(search)) return false;
+    if (statusF && ann.status !== statusF) return false;
+    if (consF && !r.conseillers.split(',').map(c=>c.trim()).includes(consF)) return false;
+    if (groupeMembers && groupeMembers.length > 0 && !r.conseillers.split(',').map(c=>c.trim()).some(n => groupeMembers.includes(n))) return false;
+    return true;
+  });
+}
+
+let sortCol = 'date', sortDir = 1;
+
+// ======================== INPUT FOCUS LOCK ========================
+let _editingRow = null; // Tracks which row is being edited - blocks Firebase re-render
+
+function renderTable() {
+  const rows = getFilteredRows();
+  const tbody = document.getElementById('tableBody');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Aucun résultat</td></tr>`;
+    document.getElementById('tableFoot').innerHTML = '';
+    updateStatsBar();
+    return;
+  }
+
+  rows.sort((a, b) => {
+    let va = a[sortCol] ?? '', vb = b[sortCol] ?? '';
+    if (sortCol === 'date') { va = a.date; vb = b.date; }
+    if (sortCol === 'client') { va = a.client.toLowerCase(); vb = b.client.toLowerCase(); }
+    if (sortCol === 'com') { const aa=getAnnotation(a._idx), ab=getAnnotation(b._idx); va=calcCom(aa.cu_s||0,aa.per_s||0,aa.vg_s||0); vb=calcCom(ab.cu_s||0,ab.per_s||0,ab.vg_s||0); }
+    if (sortCol === 'status') { va = getAnnotation(a._idx).status; vb = getAnnotation(b._idx).status; }
+    if (sortCol === 'cuArg') { va = a.cu + a.per + a.vg; vb = b.cu + b.per + b.vg; }
+    return va < vb ? -sortDir : va > vb ? sortDir : 0;
+  });
+
+  tbody.innerHTML = rows.map(r => {
+    const ann = getAnnotation(r._idx);
+    const com = ann.status === 'signe' ? calcCom(ann.cu_s||0, ann.per_s||0, ann.vg_s||0) : 0;
+    const isManual = r._manual || r.type === 'MANUEL';
+    const manualBadge = isManual ? `<span style="font-size:.65rem;background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);padding:.1rem .4rem;border-radius:2px;margin-left:.3rem;font-weight:700;vertical-align:middle">✍️ Manuel</span>` : '';
+    const manualJustif = isManual && ann.manualJustif ? `<div style="font-size:.7rem;color:var(--green);margin-top:.2rem">📝 ${ann.manualJustif}</div>` : '';
+    const consHtml = r.conseillers.split(',').map(c => `<span class="tag-conseiller">${c.trim()}</span>`).join('');
+    const volHtml = [r.cu > 0 ? `<span class="vol-badge vol-cu">CU ${fmtVol(r.cu)}</span>` : '',
+                     r.per > 0 ? `<span class="vol-badge vol-per">PER ${fmtVol(r.per)}</span>` : '',
+                     r.vg > 0 ? `<span class="vol-badge vol-vg">VG ${fmtVol(r.vg)}</span>` : ''].filter(Boolean).join(' ') || '—';
+    const showVols = ann.status === 'signe';
+    const r3Date = ann.r3Date ? `<div style="font-size:.7rem;color:var(--blue);margin-top:.2rem">📅 Reprise: ${ann.r3Date}</div>` : '';
+    const decaleInfo = ann.status === 'decale' ? `
+      ${ann.decaleNote ? `<div style="font-size:.7rem;color:var(--yellow);margin-top:.2rem">📝 ${ann.decaleNote}</div>` : ''}
+      ${ann.decaleRepoDate ? `<div style="font-size:.7rem;color:var(--gold);margin-top:.1rem">📅 Repo: ${ann.decaleRepoDate}</div>` : ''}
+    ` : '';
+    return `<tr data-idx="${r._idx}">
+      <td style="white-space:nowrap;color:var(--text-secondary);font-size:.8rem">${r.date}</td>
+      <td style="font-weight:600">${r.client}${manualBadge}</td>
+      <td>${consHtml}</td>
+      <td>${volHtml}</td>
+      <td>
+        <select class="status-select" onchange="changeStatus(${r._idx}, this.value)">
+          <option value="none" ${ann.status==='none'?'selected':''}>—</option>
+          <option value="decale" ${ann.status==='decale'?'selected':''}>📅 Décalé</option>
+          <option value="r3" ${ann.status==='r3'?'selected':''}>🔄 R3</option>
+          <option value="signe" ${ann.status==='signe'?'selected':''}>✅ Signé</option>
+          <option value="nonqualif" ${ann.status==='nonqualif'?'selected':''}>❌ Non qualifié</option>
+        </select>
+        ${r3Date}${decaleInfo}${manualJustif}
+      </td>
+      <td>
+        <div class="vol-input-group ${showVols ? 'active' : ''}" id="vols-${r._idx}">
+          <div style="display:flex;flex-direction:column;gap:.3rem">
+            <div style="display:flex;align-items:center;gap:.4rem">
+              <label style="width:38px">CU</label>
+              <input class="vol-input" type="number" min="0" step="100" placeholder="0"
+                value="${ann.cu_s||''}"
+                onfocus="_editingRow=${r._idx}"
+                oninput="liveVolInput(${r._idx},0,this.value)"
+                onblur="_editingRow=null;saveVol(${r._idx})">
+            </div>
+            <div style="display:flex;align-items:center;gap:.4rem">
+              <label style="width:38px">PER</label>
+              <input class="vol-input" type="number" min="0" step="100" placeholder="0"
+                value="${ann.per_s||''}"
+                onfocus="_editingRow=${r._idx}"
+                oninput="liveVolInput(${r._idx},1,this.value)"
+                onblur="_editingRow=null;saveVol(${r._idx})">
+            </div>
+            <div style="display:flex;align-items:center;gap:.4rem">
+              <label style="width:38px">VREG</label>
+              <input class="vol-input" type="number" min="0" step="100" placeholder="0"
+                value="${ann.vg_s||''}"
+                onfocus="_editingRow=${r._idx}"
+                oninput="liveVolInput(${r._idx},2,this.value)"
+                onblur="_editingRow=null;saveVol(${r._idx})">
+            </div>
+          </div>
+        </div>
+        ${!showVols ? '<span style="color:var(--muted);font-size:.8rem">—</span>' : ''}
+      </td>
+      <td><div class="com-display" id="com-${r._idx}">${showVols ? fmtCom(com) : '—'}</div></td>
+    </tr>`;
+  }).join('');
+
+  const signed = rows.filter(r => getAnnotation(r._idx).status === 'signe');
+  const totalCom = signed.reduce((s, r) => { const a=getAnnotation(r._idx); return s+calcCom(a.cu_s||0,a.per_s||0,a.vg_s||0); }, 0);
+  const totalCuArg = rows.reduce((s,r)=>s+r.cu,0);
+  const totalPerArg = rows.reduce((s,r)=>s+r.per,0);
+  const totalVgArg = rows.reduce((s,r)=>s+r.vg,0);
+  // Commission potentielle si tout était signé
+  const totalComArg = calcCom(totalCuArg, totalPerArg, totalVgArg);
+  document.getElementById('tableFoot').innerHTML = `<tr class="totals-row">
+    <td colspan="2" style="color:var(--muted);font-size:.78rem">TOTAUX · ${rows.length} RDVs · ${signed.length} signés</td>
+    <td></td>
+    <td style="font-size:.78rem">
+      ${totalCuArg>0?`<span class="vol-badge vol-cu">CU ${fmtNum(totalCuArg)}</span> `:''}
+      ${totalPerArg>0?`<span class="vol-badge vol-per">PER ${fmtNum(totalPerArg)}</span> `:''}
+      ${totalVgArg>0?`<span class="vol-badge vol-vg">VREG ${fmtNum(totalVgArg)}</span>`:''}
+    </td>
+    <td></td>
+    <td style="font-size:.75rem;color:var(--muted)">Com. arg. potentielle :<br><span style="color:var(--gold);font-weight:600">${fmtCom(totalComArg)}</span></td>
+    <td><div class="com-display">${fmtCom(totalCom)}</div></td>
+  </tr>`;
+  updateStatsBar();
+}
+
+function setSort(col) {
+  if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
+  renderTable();
+}
+
+// Mise à jour live de la commission sans re-render
+function liveVolInput(rowIdx, fieldIdx, val) {
+  const key = aKey(rowIdx);
+  if (!state.annotations[key]) state.annotations[key] = { status: 'signe', cu_s: 0, per_s: 0, vg_s: 0 };
+  const fields = ['cu_s','per_s','vg_s'];
+  state.annotations[key][fields[fieldIdx]] = parseFloat(val)||0;
+  const a = state.annotations[key];
+  const com = calcCom(a.cu_s||0, a.per_s||0, a.vg_s||0);
+  const el = document.getElementById('com-' + rowIdx);
+  if (el) el.textContent = fmtCom(com);
+  updateStatsBar();
+}
+
+function saveVol(rowIdx) {
+  saveState();
+}
+
+function changeStatus(rowIdx, val) {
+  const prev = getAnnotation(rowIdx).status;
+  setAnnotation(rowIdx, 'status', val);
+  // Show R3 date picker
+  if (val === 'r3') { openR3Modal(rowIdx); return; }
+  // Show decale justification
+  if (val === 'decale') { openDecaleModal(rowIdx); return; }
+  // Show non qualif alert
+  if (val === 'nonqualif') { openNonQualifModal(rowIdx); return; }
+  // Show/hide vol inputs without full re-render
+  const volGroup = document.getElementById('vols-' + rowIdx);
+  if (volGroup) {
+    if (val === 'signe') {
+      volGroup.classList.add('active');
+      volGroup.nextElementSibling && volGroup.nextElementSibling.remove && (volGroup.nextElementSibling.style.display = 'none');
+    } else {
+      volGroup.classList.remove('active');
+    }
+  }
+  renderTable();
+}
+
+function changeVol(rowIdx, field, val) {
+  setAnnotation(rowIdx, field, parseFloat(val)||0);
+}
+
+function liveVol(rowIdx) {
+  const ann = getAnnotation(rowIdx);
+  const inputs = document.querySelectorAll(`#vols-${rowIdx} input`);
+  if (inputs.length === 3) {
+    ann.cu_s = parseFloat(inputs[0].value)||0;
+    ann.per_s = parseFloat(inputs[1].value)||0;
+    ann.vg_s = parseFloat(inputs[2].value)||0;
+    state.annotations[aKey(rowIdx)] = ann;
+    saveState();
+  }
+  const com = calcCom(ann.cu_s||0, ann.per_s||0, ann.vg_s||0);
+  const el = document.getElementById('com-' + rowIdx);
+  if (el) el.textContent = fmtCom(com);
+  updateStatsBar();
+}
+
+// R3 modal
+function openR3Modal(rowIdx) {
+  document.getElementById('r3RowIdx').value = rowIdx;
+  const ann = getAnnotation(rowIdx);
+  document.getElementById('r3DateInput').value = ann.r3Date || '';
+  document.getElementById('r3Modal').classList.add('open');
+}
+function confirmR3() {
+  const rowIdx = parseInt(document.getElementById('r3RowIdx').value);
+  const date = document.getElementById('r3DateInput').value;
+  setAnnotation(rowIdx, 'r3Date', date);
+  document.getElementById('r3Modal').classList.remove('open');
+  renderTable();
+}
+
+// Décalé modal
+function openDecaleModal(rowIdx) {
+  document.getElementById('decaleRowIdx').value = rowIdx;
+  document.getElementById('decaleNote').value = '';
+  document.getElementById('decaleRepoDate').value = '';
+  document.getElementById('decaleDelay').value = '14';
+  document.getElementById('decaleModalErr').style.display = 'none';
+  document.getElementById('decaleModal').classList.add('open');
+}
+function confirmDecale() {
+  const rowIdx = parseInt(document.getElementById('decaleRowIdx').value);
+  const note = document.getElementById('decaleNote').value.trim();
+  const repoDate = document.getElementById('decaleRepoDate').value;
+  const delay = parseInt(document.getElementById('decaleDelay').value) || 14;
+  const errEl = document.getElementById('decaleModalErr');
+  if (!note) {
+    errEl.textContent = '⚠️ La justification est obligatoire.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  const alertDate = new Date(); alertDate.setDate(alertDate.getDate() + delay);
+  setAnnotation(rowIdx, 'decaleNote', note);
+  setAnnotation(rowIdx, 'decaleAlertDate', alertDate.toISOString().split('T')[0]);
+  if (repoDate) setAnnotation(rowIdx, 'decaleRepoDate', repoDate);
+  document.getElementById('decaleModal').classList.remove('open');
+  renderTable();
+}
+
+// Non qualifié modal
+function openNonQualifModal(rowIdx) {
+  document.getElementById('nonqualifRowIdx').value = rowIdx;
+  document.getElementById('nonqualifNote').value = '';
+  document.getElementById('nonqualifModal').classList.add('open');
+}
+function confirmNonQualif() {
+  const rowIdx = parseInt(document.getElementById('nonqualifRowIdx').value);
+  const note = document.getElementById('nonqualifNote').value.trim() || '';
+  setAnnotation(rowIdx, 'nonqualifNote', note);
+  document.getElementById('nonqualifModal').classList.remove('open');
+  renderTable();
+}
+
+function updateStatsBar() {
+  const resetStats = () => {
+    ['st-total','st-signed','st-decale','st-txsign','st-txr3','st-com-arg','st-com',
+     'mst-total','mst-signed','mst-decale','mst-r3','mst-cu-arg','mst-per-arg','mst-com'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '—';
+    });
+  };
+  const w = state.weeks[state.activeWeek];
+  if (!w) { resetStats(); return; }
+  const rows = w.rows;
+  const anns = rows.map((_, i) => getAnnotation(i));
+
+  // Semaine
+  const nbSigned = anns.filter(a=>a.status==='signe').length;
+  const nbR3 = anns.filter(a=>a.status==='r3').length;
+  const nbDecale = anns.filter(a=>a.status==='decale').length;
+  document.getElementById('st-total').textContent = rows.length;
+  document.getElementById('st-signed').textContent = nbSigned;
+  document.getElementById('st-decale').textContent = nbDecale;
+  const txSign = rows.length > 0 ? Math.round(nbSigned/rows.length*100) : 0;
+  const txR3 = rows.length > 0 ? Math.round(nbR3/rows.length*100) : 0;
+  const txSignEl = document.getElementById('st-txsign');
+  const txR3El = document.getElementById('st-txr3');
+  if (txSignEl) { txSignEl.textContent = txSign + '%'; txSignEl.style.color = txSign>=40?'var(--green)':txSign>=25?'var(--yellow)':'var(--red)'; }
+  if (txR3El) { txR3El.textContent = txR3 + '%'; }
+  const totalCom = anns.filter(a=>a.status==='signe').reduce((s,a)=>s+calcCom(a.cu_s||0,a.per_s||0,a.vg_s||0),0);
+  document.getElementById('st-com').textContent = fmtCom(totalCom);
+  // Commission argumentée = exclut les lignes manuelles (elles n'ont pas de volumes argumentés)
+  const nonManualRows = rows.filter(r => r.type !== 'MANUEL' && !r._manual);
+  const comArg = calcCom(nonManualRows.reduce((s,r)=>s+r.cu,0), nonManualRows.reduce((s,r)=>s+r.per,0), nonManualRows.reduce((s,r)=>s+r.vg,0));
+  const elComArg = document.getElementById('st-com-arg');
+  if (elComArg) elComArg.textContent = fmtCom(comArg);
+
+  // Mois courant
+  const curMonth = getMonthKey(w.name);
+  let mRdvs=0, mSigned=0, mDecale=0, mR3=0, mCuArg=0, mPerArg=0, mVgArg=0, mCom=0;
+  Object.entries(state.weeks).forEach(([wid, wk]) => {
+    if (getMonthKey(wk.name) !== curMonth) return;
+    wk.rows.forEach((r, idx) => {
+      const ann = state.annotations[wid+'_'+idx] || {};
+      mRdvs++;
+      // Exclure les lignes manuelles du potentiel argumenté
+      if (r.type !== 'MANUEL' && !r._manual) { mCuArg += r.cu; mPerArg += r.per; mVgArg += r.vg; }
+      if (ann.status==='signe') { mSigned++; mCom += calcCom(ann.cu_s||0,ann.per_s||0,ann.vg_s||0); }
+      if (ann.status==='decale') mDecale++;
+      if (ann.status==='r3') mR3++;
+    });
+  });
+  const mComArg = calcCom(mCuArg, mPerArg, mVgArg);
+  const setM = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  setM('mst-total', mRdvs);
+  setM('mst-signed', mSigned);
+  setM('mst-decale', mDecale);
+  setM('mst-r3', mR3);
+  setM('mst-cu-arg', fmtCom(mComArg));
+  setM('mst-per-arg', fmtCom(mCom));
+  setM('mst-vg-arg', '');
+  setM('mst-com', fmtCom(mCom));
+}
+
+// ======================== IMPORT ========================
+let pendingImportRows = null;
+
+function openImport() { document.getElementById('importModal').classList.add('open'); }
+function closeImport() { document.getElementById('importModal').classList.remove('open'); pendingImportRows = null; document.getElementById('dropFileName').textContent=''; }
+
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  pendingImportRows = null;
+  const btn = document.getElementById('importBtn');
+  const errEl = document.getElementById('importError');
+  if (btn) { btn.disabled = true; btn.style.opacity = '.4'; }
+  if (errEl) errEl.style.display = 'none';
+  document.getElementById('dropFileName').textContent = '⏳ Lecture de ' + file.name + '…';
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      if (!wb || !wb.SheetNames.length) throw new Error('Impossible de lire le fichier Excel.');
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      // Certains fichiers Excel ont un !ref incorrect (ex: A1:C1 au lieu de A1:J68)
+      // On recalcule le vrai range depuis toutes les cellules présentes
+      const allCells = Object.keys(sheet).filter(k => !k.startsWith('!'));
+      if (allCells.length > 0) {
+        let maxRow = 1, maxCol = 0;
+        allCells.forEach(addr => {
+          const m = addr.match(/([A-Z]+)(\d+)/);
+          if (m) {
+            const row = parseInt(m[2]);
+            const col = XLSX.utils.decode_col(m[1]);
+            if (row > maxRow) maxRow = row;
+            if (col > maxCol) maxCol = col;
+          }
+        });
+        sheet['!ref'] = 'A1:' + XLSX.utils.encode_col(maxCol) + maxRow;
+      }
+      const data = XLSX.utils.sheet_to_json(sheet, { raw: true, defval: '' });
+      if (!data || data.length === 0) throw new Error('Le fichier est vide.');
+      const cols = Object.keys(data[0] || {});
+      console.log('Colonnes trouvées:', cols);
+      const rows = [], allDates = [];
+      for (const r of data) {
+        const findCol = (...names) => {
+          for (const n of names) {
+            const key = Object.keys(r).find(k => k.trim().toLowerCase() === n.toLowerCase());
+            if (key !== undefined && r[key] !== undefined && String(r[key]).trim() !== '') return r[key];
+          }
+          return '';
+        };
+        const client = String(findCol('Nom du client','Client','NOM','Nom','CLIENT')).trim();
+        if (!client || client.toLowerCase() === 'undefined' || client === '') continue;
+        const dateRaw = String(findCol('Date','DATE','date')).substring(0,16);
+        const cons = String(findCol('Conseiller','Conseillers','CONSEILLER','Mandataire')).trim();
+        const type = String(findCol('Type','TYPE','type') || 'R2');
+        const cu = parseFloat(String(findCol('CU','cu')).replace(/[^\d.,]/g,'').replace(',','.')) || 0;
+        const per = parseFloat(String(findCol('PER','per')).replace(/[^\d.,]/g,'').replace(',','.')) || 0;
+        const vg = parseFloat(String(findCol('VG','vg','VREG','Vreg','vreg')).replace(/[^\d.,]/g,'').replace(',','.')) || 0;
+        rows.push({ date: dateRaw, client, conseillers: cons, type, cu, per, vg });
+        if (dateRaw && dateRaw.length >= 8) allDates.push(dateRaw);
+      }
+      if (rows.length === 0) throw new Error('Aucune ligne valide. Colonnes: ' + cols.join(', '));
+      if (allDates.length > 0) {
+        const parseD = s => { const m = s.match(/(\d{2})\/(\d{2})\/(\d{4})/); return m ? new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1])) : null; };
+        const parsed = allDates.map(parseD).filter(d => d && !isNaN(d));
+        if (parsed.length > 0) {
+          const minD = new Date(Math.min(...parsed)), maxD = new Date(Math.max(...parsed));
+          const fmt = d => String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+          document.getElementById('importWeekName').value = fmt(minD) + ' - ' + fmt(maxD);
+        }
+      }
+      pendingImportRows = rows;
+      document.getElementById('dropFileName').textContent = '✅ ' + file.name + ' — ' + rows.length + ' lignes trouvées';
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+    } catch(err) {
+      document.getElementById('dropFileName').textContent = '❌ ' + file.name;
+      if (errEl) { errEl.textContent = 'Erreur : ' + err.message; errEl.style.display = 'block'; }
+      console.error('Import error:', err);
+    }
+  };
+  reader.onerror = () => { document.getElementById('dropFileName').textContent = '❌ Erreur lecture'; };
+  reader.readAsArrayBuffer(file);
+}
+
+const dropZone = document.getElementById('dropZone');
+['dragover','dragenter'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.add('dragover'); }));
+['dragleave','drop'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.remove('dragover'); }));
+dropZone.addEventListener('drop', ev => {
+  const file = ev.dataTransfer.files[0];
+  if (file) { const input = document.getElementById('fileInput'); const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files; handleFile(input); }
+});
+
+async function confirmImport() {
+  const name = document.getElementById('importWeekName').value.trim() || 'Semaine importée';
+  if (!pendingImportRows || !pendingImportRows.length) { alert('Veuillez d\'abord importer un fichier valide.'); return; }
+  const id = 'w_' + Date.now();
+  state.weeks[id] = { name, range: name, rows: pendingImportRows };
+  state.activeWeek = id;
+  await saveState();
+  closeImport();
+  renderWeekList();
+  renderTable();
+  populateConseillerFilter();
+  populateHistoryFilters();
+}
+
+// ======================== HISTORY ========================
+function getAllAdvisors() {
+  const all = new Set();
+  Object.values(state.weeks).forEach(w => w.rows.forEach(r => r.conseillers.split(',').forEach(c => all.add(c.trim()))));
+  return [...all].sort();
+}
+
+function getMonthKey(weekName) {
+  const m = weekName.match(/(\d{2})\/(\d{4})/);
+  if (m) return m[1] + '/' + m[2];
+  return weekName;
+}
+
+function populateHistoryFilters() {
+  const months = new Set();
+  Object.values(state.weeks).forEach(w => months.add(getMonthKey(w.name)));
+  const sel = document.getElementById('histMonth');
+  sel.innerHTML = '<option value="">Tous les mois</option>' + [...months].sort().map(m => `<option value="${m}">${m}</option>`).join('');
+  const gSel = document.getElementById('histGroup');
+  gSel.innerHTML = '<option value="">Tous les groupes</option>' + (state.groups||[]).map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+  populateHistMandataire('');
+}
+
+function histGroupChanged() {
+  const groupF = document.getElementById('histGroup').value;
+  populateHistMandataire(groupF);
+  renderHistory();
+}
+
+function populateHistMandataire(groupF) {
+  let advisors = getAllAdvisors();
+  if (groupF) {
+    const grp = (state.groups||[]).find(g => g.id === groupF);
+    if (grp) advisors = advisors.filter(a => grp.members.includes(a));
+  }
+  const sel = document.getElementById('histMandataire');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Tous les mandataires</option>' + advisors.map(a => `<option value="${a}" ${a===cur?'selected':''}>${a}</option>`).join('');
+}
+
+let currentHistTab = 'mia';
+function showHistTab(tab) {
+  currentHistTab = tab;
+  ['mia','decale','stats'].forEach(t => {
+    document.getElementById('histPane-' + t).style.display = t === tab ? 'block' : 'none';
+    document.getElementById('htab-' + t).classList.toggle('active', t === tab);
+  });
+  // Afficher les filtres semaine/période seulement sur l'onglet stats
+  const wf = document.getElementById('statsWeekFilter');
+  const pf = document.getElementById('statsPeriodFilter');
+  if (wf) wf.style.display = tab === 'stats' ? '' : 'none';
+  if (pf) pf.style.display = tab === 'stats' ? '' : 'none';
+  renderHistory();
+}
+
+function renderHistory() {
+  const monthF = document.getElementById('histMonth').value;
+  const groupF = document.getElementById('histGroup').value;
+  const mandataireF = document.getElementById('histMandataire') ? document.getElementById('histMandataire').value : '';
+  const search = (document.getElementById('histSearch').value||'').toLowerCase();
+
+  if (currentHistTab === 'mia') renderHistoryMIA(monthF, groupF, mandataireF, search);
+  else if (currentHistTab === 'decale') renderHistoryDecale(monthF, groupF, mandataireF, search);
+  else if (currentHistTab === 'stats') renderHistoryStats();
+}
+
+function buildAdvisorData(monthF) {
+  const advisorData = {};
+  Object.entries(state.weeks).forEach(([wid, w]) => {
+    if (monthF && getMonthKey(w.name) !== monthF) return;
+    w.rows.forEach((r, idx) => {
+      const ann = state.annotations[wid + '_' + idx] || { status: 'none', cu_s: 0, per_s: 0, vg_s: 0 };
+      const names = r.conseillers.split(',').map(c => c.trim()).filter(Boolean);
+      const nb = names.length;
+      names.forEach(name => {
+        if (!advisorData[name]) advisorData[name] = { rdvs: 0, signed: 0, decale: 0, r3: 0, nonqualif: 0, cu: 0, per: 0, vg: 0, com: 0, cu_arg: 0, per_arg: 0, vg_arg: 0, items: [], decaleItems: [] };
+        const d = advisorData[name];
+        d.rdvs++; // 1 RDV par conseiller (logique individuelle)
+        // Volumes argumentés divisés entre conseillers
+        d.cu_arg += r.cu / nb;
+        d.per_arg += r.per / nb;
+        d.vg_arg += r.vg / nb;
+        if (ann.status === 'signe') {
+          const cu_part = (ann.cu_s||0) / nb;
+          const per_part = (ann.per_s||0) / nb;
+          const vg_part = (ann.vg_s||0) / nb;
+          d.signed++;
+          d.cu += cu_part; d.per += per_part; d.vg += vg_part;
+          d.com += calcCom(cu_part, per_part, vg_part);
+          d.items.push({ date: r.date, client: r.client, status: ann.status, com: calcCom(cu_part, per_part, vg_part), shared: nb > 1, cu: r.cu/nb, per: r.per/nb, vg: r.vg/nb });
+        } else {
+          if (ann.status === 'decale') { d.decale++; d.decaleItems.push({ date: r.date, client: r.client, note: ann.decaleNote||'', alertDate: ann.decaleAlertDate||'', repoDate: ann.decaleRepoDate||'', weekId: wid, rowIdx: idx }); }
+          if (ann.status === 'r3') d.r3++;
+          if (ann.status === 'nonqualif') d.nonqualif++;
+          d.items.push({ date: r.date, client: r.client, status: ann.status, com: 0, shared: nb > 1, cu: r.cu/nb, per: r.per/nb, vg: r.vg/nb, r3Date: ann.r3Date||'', decaleNote: ann.decaleNote||'', decaleRepo: ann.decaleRepoDate||'' });
+        }
+      });
+    });
+  });
+  return advisorData;
+}
+
+// Compte le total de RDVs réels (pas multiplié par nb conseillers)
+function countTotalRDVs(monthF) {
+  let total = 0;
+  Object.values(state.weeks).forEach(w => {
+    if (monthF && getMonthKey(w.name) !== monthF) return;
+    total += w.rows.length;
+  });
+  return total;
+}
+
+function renderHistoryMIA(monthF, groupF, mandataireF, search) {
+  const advisorData = buildAdvisorData(monthF);
+  let advisors = Object.keys(advisorData);
+  if (groupF) { const grp = (state.groups||[]).find(g => g.id === groupF); if (grp) advisors = advisors.filter(a => grp.members.includes(a)); }
+  // Filtre mandataire — vide = tous
+  if (mandataireF && mandataireF !== '') advisors = advisors.filter(a => a === mandataireF);
+  if (search) advisors = advisors.filter(a => a.toLowerCase().includes(search) || advisorData[a].items.some(i => i.client.toLowerCase().includes(search)));
+  advisors.sort();
+
+  const grid = document.getElementById('histGrid');
+
+  // Monthly summary card
+  if (advisors.length) {
+    const totCu = advisors.reduce((s,a)=>s+(advisorData[a].cu||0),0);
+    const totPer = advisors.reduce((s,a)=>s+(advisorData[a].per||0),0);
+    const totVg = advisors.reduce((s,a)=>s+(advisorData[a].vg||0),0);
+    const totCom = advisors.reduce((s,a)=>s+(advisorData[a].com||0),0);
+    const totCuArg = advisors.reduce((s,a)=>s+(advisorData[a].cu_arg||0),0);
+    const totPerArg = advisors.reduce((s,a)=>s+(advisorData[a].per_arg||0),0);
+    const totVgArg = advisors.reduce((s,a)=>s+(advisorData[a].vg_arg||0),0);
+    // Compter les vrais RDVs (pas multiplié par nb conseillers)
+    const totRdvs = countTotalRDVs(monthF);
+    let realSigned=0, realDecale=0, realR3=0;
+    Object.entries(state.weeks).forEach(([wid, w]) => {
+      if (monthF && getMonthKey(w.name) !== monthF) return;
+      w.rows.forEach((_, idx) => {
+        const ann = state.annotations[wid+'_'+idx] || {};
+        if (ann.status==='signe') realSigned++;
+        else if (ann.status==='decale') realDecale++;
+        else if (ann.status==='r3') realR3++;
+      });
+    });
+    const weekCount = Object.values(state.weeks).filter(w => !monthF || getMonthKey(w.name) === monthF).length;
+    document.getElementById('monthSummary').innerHTML = `
+      <div class="month-summary-card">
+        <div class="msc-title">📊 Récap ${monthF ? 'du mois ' + monthF : 'global'} — ${advisors.length} mandataires · ${weekCount} semaine${weekCount>1?'s':''}</div>
+        <div class="msc-grid">
+          <div class="msc-stat"><div class="msc-val">${totRdvs}</div><div class="msc-lbl">RDVs total</div></div>
+          <div class="msc-stat"><div class="msc-val">${realSigned}</div><div class="msc-lbl">Signés</div></div>
+          <div class="msc-stat"><div class="msc-val">${Math.round(totCuArg).toLocaleString("fr-FR")} €</div><div class="msc-lbl">CU argumenté</div></div>
+          <div class="msc-stat"><div class="msc-val">${Math.round(totPerArg).toLocaleString("fr-FR")} €</div><div class="msc-lbl">PER argumenté</div></div>
+          <div class="msc-stat"><div class="msc-val">${Math.round(totVgArg).toLocaleString("fr-FR")} €</div><div class="msc-lbl">VREG argumenté</div></div>
+          <div class="msc-stat"><div class="msc-val">${Math.round(totCu).toLocaleString("fr-FR")} €</div><div class="msc-lbl">CU signé</div></div>
+          <div class="msc-stat"><div class="msc-val">${Math.round(totPer).toLocaleString("fr-FR")} €</div><div class="msc-lbl">PER signé</div></div>
+          <div class="msc-stat"><div class="msc-val">${Math.round(totVg).toLocaleString("fr-FR")} €</div><div class="msc-lbl">VREG signé</div></div>
+          <div class="msc-stat"><div class="msc-val" style="color:#c9a84c">${fmtCom(totCom)}</div><div class="msc-lbl">Commission totale</div></div>
+        </div>
+      </div>`;
+  } else {
+    document.getElementById('monthSummary').innerHTML = '';
+  }
+
+  if (!advisors.length) { grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📊</div><div>Aucune donnée</div></div>`; return; }
+
+  grid.innerHTML = advisors.map(name => {
+    const d = advisorData[name];
+    const grp = (state.groups||[]).find(g => g.members.includes(name));
+    const lastItems = d.items.filter(i => i.status !== 'none').slice(-4).reverse();
+    return `<div class="conseiller-card">
+      <div class="cc-header">
+        <div>
+          <div class="cc-name">${name}</div>
+          ${grp ? `<div class="cc-group">👥 ${grp.name}</div>` : '<div class="cc-group" style="opacity:.6">Sans groupe</div>'}
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:.68rem;color:var(--gold-light);text-transform:uppercase;letter-spacing:.08em">RDVs</div>
+          <div style="font-weight:700;font-size:1.4rem;color:#fff;line-height:1.1">${d.rdvs}</div>
+        </div>
+      </div>
+      <div class="cc-stats">
+        <div class="cc-stat"><div class="cc-stat-val" style="color:var(--green)">${d.signed}</div><div class="cc-stat-lbl">Signés</div></div>
+        <div class="cc-stat"><div class="cc-stat-val" style="color:var(--yellow)">${d.decale}</div><div class="cc-stat-lbl">Décalés</div></div>
+        <div class="cc-stat"><div class="cc-stat-val" style="color:var(--blue)">${d.r3}</div><div class="cc-stat-lbl">R3</div></div>
+      </div>
+      <div style="padding:.5rem 1.1rem;border-top:1px solid var(--border);background:var(--surface2)">
+        <div style="font-size:.68rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem">Volumes argumentés</div>
+        <div style="display:flex;gap:.3rem;flex-wrap:wrap">
+          ${d.cu_arg>0?`<span class="vol-badge vol-cu">CU ${Math.round(d.cu_arg).toLocaleString('fr-FR')} €</span>`:''}
+          ${d.per_arg>0?`<span class="vol-badge vol-per">PER ${Math.round(d.per_arg).toLocaleString('fr-FR')} €</span>`:''}
+          ${d.vg_arg>0?`<span class="vol-badge vol-vg">VREG ${Math.round(d.vg_arg).toLocaleString('fr-FR')} €</span>`:''}
+          ${(d.cu_arg+d.per_arg+d.vg_arg)===0?'<span style="color:var(--muted);font-size:.78rem">—</span>':''}
+        </div>
+      </div>
+      ${lastItems.length ? `<div class="cc-rdvs">${lastItems.map(i => {
+        const volTip = [
+          i.cu>0?`CU: ${fmtNum(Math.round(i.cu))}`:null,
+          i.per>0?`PER: ${fmtNum(Math.round(i.per))}`:null,
+          i.vg>0?`VREG: ${fmtNum(Math.round(i.vg))}`:null,
+        ].filter(Boolean).join(' · ') || 'Aucun volume argumenté';
+        // Infos supplémentaires selon statut
+        let extraTip = '';
+        if (i.status === 'r3' && i.r3Date) extraTip = `📅 Reprise prévue : <strong>${i.r3Date}</strong>`;
+        if (i.status === 'decale') {
+          if (i.decaleNote) extraTip = `📝 ${i.decaleNote}`;
+          if (i.decaleRepo) extraTip += `<br>📅 Repositionné le : <strong>${i.decaleRepo}</strong>`;
+          if (!i.decaleNote && !i.decaleRepo) extraTip = '📅 Décalé — justification manquante';
+        }
+        return `<div class="cc-rdv-item">
+          <span style="color:var(--muted);font-size:.75rem;white-space:nowrap">${i.date.substring(0,10)}</span>
+          <span style="display:flex;align-items:center;gap:.25rem;position:relative;flex:1;margin:0 .5rem;min-width:0" class="has-tooltip">
+            ${i.shared ? '<span style="color:var(--gold);font-size:.68rem;font-weight:700;flex-shrink:0">½</span>' : ''}
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.client}</span>
+            <div class="tooltip-box" style="min-width:220px;white-space:normal;max-width:300px;line-height:1.7">
+              📋 <strong>${i.client}</strong><br>
+              ${volTip}
+              ${i.shared ? '<br>⚡ RDV partagé (÷2)' : ''}
+              ${extraTip ? '<br>' + extraTip : ''}
+            </div>
+          </span>
+          <span style="display:flex;align-items:center;gap:.3rem;flex-shrink:0">
+            ${i.status==='signe'&&i.com>0?`<span style="color:var(--green);font-size:.75rem;font-weight:700">${fmtCom(i.com)}</span>`:''}
+            <span class="status-badge ${i.status==='signe'?'s-signe':i.status==='decale'?'s-decale':i.status==='r3'?'s-r3':'s-none'}">${i.status==='signe'?'✅':i.status==='decale'?'📅':i.status==='r3'?'🔄':'—'}</span>
+          </span>
+        </div>`;
+      }).join('')}
+      </div>` : ''}
+      <div class="cc-com">
+        <div>
+          ${d.cu>0?`<span class="vol-badge vol-cu" style="margin:.1rem">CU ${Math.round(d.cu).toLocaleString('fr-FR')+' €'}</span>`:''}
+          ${d.per>0?`<span class="vol-badge vol-per" style="margin:.1rem">PER ${Math.round(d.per).toLocaleString('fr-FR')+' €'}</span>`:''}
+          ${d.vg>0?`<span class="vol-badge vol-vg" style="margin:.1rem">VREG ${Math.round(d.vg).toLocaleString('fr-FR')+' €'}</span>`:''}
+        </div>
+        <div>${fmtCom(d.com)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderHistoryDecale(monthF, groupF, mandataireF, search) {
+  const advisorData = buildAdvisorData(monthF);
+  let advisors = Object.keys(advisorData).filter(a => advisorData[a].decaleItems.length > 0);
+  if (groupF) { const grp = (state.groups||[]).find(g => g.id === groupF); if (grp) advisors = advisors.filter(a => grp.members.includes(a)); }
+  if (mandataireF) advisors = advisors.filter(a => a === mandataireF);
+  if (search) advisors = advisors.filter(a => a.toLowerCase().includes(search));
+  advisors.sort();
+
+  const today = new Date().toISOString().split('T')[0];
+  const in2weeks = new Date(); in2weeks.setDate(in2weeks.getDate()+14);
+  const in2weeksStr = in2weeks.toISOString().split('T')[0];
+
+  // Auto-suppress: check if client appears as repositioned in upcoming weeks
+  const upcomingClients = new Set();
+  Object.entries(state.weeks).forEach(([wid, w]) => {
+    w.rows.forEach((r, idx) => {
+      const ann = state.annotations[wid + '_' + idx];
+      if (ann && ann.r3Date && ann.r3Date >= today && ann.r3Date <= in2weeksStr) {
+        upcomingClients.add(r.client.toLowerCase().trim());
+      }
+      // Also check decale repoDate
+      if (ann && ann.decaleRepoDate && ann.decaleRepoDate >= today && ann.decaleRepoDate <= in2weeksStr) {
+        upcomingClients.add(r.client.toLowerCase().trim());
+      }
+    });
+  });
+
+  const grid = document.getElementById('decaleGrid');
+  if (!advisors.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><div>Aucun RDV décalé en attente</div></div>`;
+    return;
+  }
+
+  grid.innerHTML = advisors.map(name => {
+    const items = advisorData[name].decaleItems;
+    const grp = (state.groups||[]).find(g => g.members.includes(name));
+    return `<div class="decale-advisor">
+      <div class="decale-advisor-header">
+        <div>
+          <span class="decale-advisor-name">👤 ${name}</span>
+          ${grp ? `<span style="font-size:.72rem;color:var(--muted);margin-left:.5rem">👥 ${grp.name}</span>` : ''}
+        </div>
+        <span class="decale-count">${items.length} décalé${items.length>1?'s':''}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:90px 1fr 1fr 140px auto;gap:.75rem;padding:.5rem 1.1rem;background:var(--surface2);border-bottom:1px solid var(--border);font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">
+        <span>Date RDV</span><span>Client</span><span>Justification</span><span>Repositionnement</span><span>Statut</span>
+      </div>
+      ${items.map(item => {
+        const isRepoSoon = upcomingClients.has(item.client.toLowerCase().trim());
+        const isOverdue = item.alertDate && item.alertDate <= today;
+        const hasRepoDate = item.repoDate && item.repoDate !== '';
+        return `<div style="display:grid;grid-template-columns:90px 1fr 1fr 140px auto;gap:.75rem;align-items:center;padding:.65rem 1.1rem;border-bottom:1px solid var(--border);font-size:.83rem;background:${isRepoSoon?'var(--green-bg)':isOverdue?'var(--yellow-bg)':''}">
+          <span style="color:var(--muted);font-size:.78rem">${item.date.substring(0,10)}</span>
+          <span style="font-weight:600">${item.client}</span>
+          <span style="font-size:.78rem;color:var(--text-secondary)">${item.note||'—'}</span>
+          <input type="date" value="${item.repoDate||''}"
+            onchange="saveDecaleRepoDate('${item.weekId}',${item.rowIdx},this.value)"
+            style="border:1.5px solid var(--border);border-radius:6px;padding:.3rem .5rem;font-size:.78rem;font-family:Inter,sans-serif;background:var(--surface);color:var(--text);outline:none;width:100%">
+          <span style="display:flex;gap:.3rem;align-items:center;white-space:nowrap">
+            ${isRepoSoon||hasRepoDate ? '<span style="background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);padding:.15rem .5rem;border-radius:20px;font-size:.72rem;font-weight:600">✅ Repositionné</span>' : ''}
+            ${isOverdue && !isRepoSoon && !hasRepoDate ? '<span style="background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-border);padding:.15rem .5rem;border-radius:20px;font-size:.72rem;font-weight:600">⚠️ Alerte</span>' : ''}
+          </span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+async function saveDecaleRepoDate(weekId, rowIdx, date) {
+  const key = weekId + '_' + rowIdx;
+  if (!state.annotations[key]) state.annotations[key] = { status: 'decale' };
+  state.annotations[key].decaleRepoDate = date;
+  await saveState();
+  // Re-render to update status
+  renderHistoryDecale(
+    document.getElementById('histMonth').value,
+    document.getElementById('histGroup').value,
+    document.getElementById('histMandataire')?.value || '',
+    document.getElementById('histSearch').value || ''
+  );
+}
+
+function renderHistoryStats() {
+  const grid = document.getElementById('statsGlobalGrid');
+  const monthF = document.getElementById('histMonth')?.value || '';
+  const groupF = document.getElementById('histGroup')?.value || '';
+  const mandataireF = document.getElementById('histMandataire')?.value || '';
+  const weekF = document.getElementById('statsWeekFilter')?.value || '';
+  const periodF = document.getElementById('statsPeriodFilter')?.value || '';
+  const curWeekId = state.activeWeek;
+  const curMonth2 = curWeekId && state.weeks[curWeekId] ? getMonthKey(state.weeks[curWeekId].name) : '';
+
+  // Populate week filter
+  const wSel = document.getElementById('statsWeekFilter');
+  if (wSel) {
+    const cur = wSel.value;
+    wSel.innerHTML = '<option value="">Toutes les semaines</option>' +
+      Object.entries(state.weeks).map(([id,w]) => `<option value="${id}" ${id===cur?'selected':''}>${w.name}</option>`).join('');
+  }
+  // (group filter is the unified histGroup selector)
+
+  // Helper: compute stats for a set of rows+annotations filtered by advisor list
+  function computeStats(rows, annsMap, advisorFilter) {
+    let rdvs=0, signed=0, decale=0, r3=0, nonq=0;
+    let cuArg=0, perArg=0, vgArg=0;
+    let cuSign=0, perSign=0, vgSign=0, com=0;
+    rows.forEach((r, idx) => {
+      const names = r.conseillers.split(',').map(c=>c.trim()).filter(Boolean);
+      if (advisorFilter && !names.some(n => advisorFilter.includes(n))) return;
+      const ann = annsMap[idx] || {};
+      rdvs++;
+      cuArg+=r.cu; perArg+=r.per; vgArg+=r.vg;
+      if (ann.status==='signe') { signed++; cuSign+=ann.cu_s||0; perSign+=ann.per_s||0; vgSign+=ann.vg_s||0; com+=calcCom(ann.cu_s||0,ann.per_s||0,ann.vg_s||0); }
+      if (ann.status==='decale') decale++;
+      if (ann.status==='r3') r3++;
+      if (ann.status==='nonqualif') nonq++;
+    });
+    const txSign = rdvs > 0 ? (signed/rdvs*100).toFixed(0) : 0;
+    const txDecale = rdvs > 0 ? (decale/rdvs*100).toFixed(0) : 0;
+    const txR3 = rdvs > 0 ? (r3/rdvs*100).toFixed(0) : 0;
+    const txTransfoCu = cuArg > 0 ? (cuSign/cuArg*100).toFixed(0) : 0;
+    const txTransfoPer = perArg > 0 ? (perSign/perArg*100).toFixed(0) : 0;
+    const txTransfoVg = vgArg > 0 ? (vgSign/vgArg*100).toFixed(0) : 0;
+    return { rdvs, signed, decale, r3, nonq, cuArg, perArg, vgArg, cuSign, perSign, vgSign, com, txSign, txDecale, txR3, txTransfoCu, txTransfoPer, txTransfoVg };
+  }
+
+  const fv = v => Math.round(v).toLocaleString('fr-FR') + ' €';
+  const pct = v => `<span style="color:${v>=50?'var(--green)':v>=30?'var(--yellow)':'var(--red)'};font-weight:700">${v}%</span>`;
+  const pctNeutral = v => `<span style="font-weight:700;color:var(--blue)">${v}%</span>`;
+
+  // Determine advisor filter from group OR individual mandataire
+  let advisorFilter = null;
+  if (mandataireF) {
+    advisorFilter = [mandataireF]; // filtre sur un seul mandataire
+  } else if (groupF) {
+    const grp = (state.groups||[]).find(g => g.id === groupF);
+    if (grp) advisorFilter = grp.members;
+  }
+
+  // Get weeks to process — avec filtre période
+  const weeksToProcess = Object.entries(state.weeks).filter(([wid, w]) => {
+    if (monthF && getMonthKey(w.name) !== monthF) return false;
+    if (weekF && wid !== weekF) return false;
+    if (periodF === 'current_week' && wid !== curWeekId) return false;
+    if (periodF === 'current_month' && getMonthKey(w.name) !== curMonth2) return false;
+    return true;
+  });
+
+  // Stats par semaine
+  const weekStats = weeksToProcess.map(([wid, w]) => {
+    const annsMap = {};
+    w.rows.forEach((r, idx) => { annsMap[idx] = state.annotations[wid+'_'+idx] || {}; });
+    return { name: w.name, wid, ...computeStats(w.rows, annsMap, advisorFilter) };
+  });
+
+  // Stats par mois
+  const monthStats = {};
+  weeksToProcess.forEach(([wid, w]) => {
+    const mk = getMonthKey(w.name);
+    if (!monthStats[mk]) monthStats[mk] = { rows: [], annsMap: {} };
+    w.rows.forEach((r, idx) => {
+      monthStats[mk].rows.push(r);
+      monthStats[mk].annsMap[monthStats[mk].rows.length-1] = state.annotations[wid+'_'+idx] || {};
+    });
+  });
+  const monthStatsComputed = Object.entries(monthStats).sort().map(([mk, data]) => ({
+    name: mk, ...computeStats(data.rows, data.annsMap, advisorFilter)
+  }));
+
+  // Stats par groupe — filtré si mandataire sélectionné
+  const groupStats = (state.groups||[])
+    .filter(g => !mandataireF || (g.members||[]).includes(mandataireF))
+    .map(g => {
+    let rdvs=0, signed=0, decale=0, r3=0, nonq=0, none=0;
+    let cuArg=0, perArg=0, vgArg=0, cuSign=0, perSign=0, vgSign=0, com=0;
+    weeksToProcess.forEach(([wid, w]) => {
+      w.rows.forEach((r, idx) => {
+        const names = r.conseillers.split(',').map(c=>c.trim()).filter(Boolean);
+        if (!names.some(n => (g.members||[]).includes(n))) return;
+        const ann = state.annotations[wid+'_'+idx] || {};
+        rdvs++;
+        cuArg+=r.cu; perArg+=r.per; vgArg+=r.vg;
+        if (ann.status==='signe') { signed++; cuSign+=ann.cu_s||0; perSign+=ann.per_s||0; vgSign+=ann.vg_s||0; com+=calcCom(ann.cu_s||0,ann.per_s||0,ann.vg_s||0); }
+        else if (ann.status==='decale') decale++;
+        else if (ann.status==='r3') r3++;
+        else if (ann.status==='nonqualif') nonq++;
+        else none++;
+      });
+    });
+    const txSign = rdvs > 0 ? (signed/rdvs*100).toFixed(0) : 0;
+    const txDecale = rdvs > 0 ? (decale/rdvs*100).toFixed(0) : 0;
+    const txR3 = rdvs > 0 ? (r3/rdvs*100).toFixed(0) : 0;
+    const txTransfoCu = cuArg > 0 ? (cuSign/cuArg*100).toFixed(0) : 0;
+    const txTransfoPer = perArg > 0 ? (perSign/perArg*100).toFixed(0) : 0;
+    const txTransfoVg = vgArg > 0 ? (vgSign/vgArg*100).toFixed(0) : 0;
+    return { name: g.name, rt: g.rt||g.ref||'—', rdvs, signed, decale, r3, nonq, none, cuArg, perArg, vgArg, cuSign, perSign, vgSign, com, txSign, txDecale, txR3, txTransfoCu, txTransfoPer, txTransfoVg };
+  });
+
+  const statCard = (label, val, color='var(--text)') =>
+    `<div style="text-align:center;padding:.5rem;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+      <div style="font-size:1rem;font-weight:800;color:${color}">${val}</div>
+      <div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:.15rem">${label}</div>
+    </div>`;
+
+  const statSection = (title, stats) => `
+    <div class="stats-global-section" style="margin-bottom:1.5rem">
+      <div class="sgs-title">${title}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">
+        ${stats.map(s => `
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+            <div style="padding:.65rem 1rem;background:var(--accent);color:#fff;font-weight:700;font-size:.88rem;display:flex;justify-content:space-between">
+              <span>${s.name}</span>
+              ${s.rt ? `<span style="opacity:.8;font-size:.75rem">RT: ${s.rt}</span>` : ''}
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;padding:.75rem">
+              ${statCard('RDVs', s.rdvs)}
+              ${statCard('Signés', s.signed, 'var(--green)')}
+              ${statCard('Tx signature', s.txSign+'%', parseInt(s.txSign)>=40?'var(--green)':parseInt(s.txSign)>=25?'var(--yellow)':'var(--red)')}
+              ${statCard('Décalés', s.decale, 'var(--yellow)')}
+              ${statCard('Tx décalage', s.txDecale+'%', parseInt(s.txDecale)<=15?'var(--green)':'var(--yellow)')}
+              ${statCard('R3', s.r3, 'var(--blue)')}
+            </div>
+            <div style="padding:.75rem 1rem;border-top:1px solid var(--border);background:var(--surface2)">
+              <div style="font-size:.65rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">Vol. argumenté vs signé · Com. potentielle</div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem">
+                <div style="text-align:center;background:var(--surface);border:1px solid var(--blue-border);border-radius:3px;padding:.4rem">
+                  <div style="font-size:.62rem;font-weight:700;color:var(--blue);letter-spacing:.06em">CU</div>
+                  <div style="font-size:.72rem;color:var(--muted)">Arg: ${fv(s.cuArg)}</div>
+                  <div style="font-size:.78rem;font-weight:700;color:var(--blue)">Sig: ${fv(s.cuSign)}</div>
+                  <div style="font-size:.65rem;font-weight:700;color:${parseInt(s.txTransfoCu)>=30?'var(--green)':'var(--yellow)'}">${s.txTransfoCu}%</div>
+                </div>
+                <div style="text-align:center;background:var(--surface);border:1px solid var(--gold-border);border-radius:3px;padding:.4rem">
+                  <div style="font-size:.62rem;font-weight:700;color:var(--gold);letter-spacing:.06em">PER</div>
+                  <div style="font-size:.72rem;color:var(--muted)">Arg: ${fv(s.perArg)}</div>
+                  <div style="font-size:.78rem;font-weight:700;color:var(--gold)">Sig: ${fv(s.perSign)}</div>
+                  <div style="font-size:.65rem;font-weight:700;color:${parseInt(s.txTransfoPer)>=30?'var(--green)':'var(--yellow)'}">${s.txTransfoPer}%</div>
+                </div>
+                <div style="text-align:center;background:var(--surface);border:1px solid var(--green-border);border-radius:3px;padding:.4rem">
+                  <div style="font-size:.62rem;font-weight:700;color:var(--green);letter-spacing:.06em">VREG</div>
+                  <div style="font-size:.72rem;color:var(--muted)">Arg: ${fv(s.vgArg)}</div>
+                  <div style="font-size:.78rem;font-weight:700;color:var(--green)">Sig: ${fv(s.vgSign)}</div>
+                  <div style="font-size:.65rem;font-weight:700;color:${parseInt(s.txTransfoVg)>=30?'var(--green)':'var(--yellow)'}">${s.txTransfoVg}%</div>
+                </div>
+              </div>
+              <div style="margin-top:.5rem;display:flex;justify-content:space-between;font-size:.75rem;padding:.4rem .5rem;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:2px">
+                <span style="color:var(--muted)">Com. potentielle: <strong style="color:var(--gold)">${fmtCom(calcCom(s.cuArg,s.perArg,s.vgArg))}</strong></span>
+                <span style="color:var(--muted)">Réalisée: <strong style="color:var(--green)">${fmtCom(s.com)}</strong></span>
+              </div>
+            </div>
+            <div style="padding:.6rem 1rem;border-top:1px solid var(--border);background:var(--gold-bg);display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600">Com. réalisée</div>
+                <div style="font-size:1.1rem;font-weight:700;color:var(--green)">${fmtCom(s.com)}</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600">Sur potentiel</div>
+                <div style="font-size:1.1rem;font-weight:700;color:var(--gold)">${fmtCom(calcCom(s.cuArg,s.perArg,s.vgArg))}</div>
+              </div>
+            </div>
+            <div style="padding:.4rem 1rem;background:var(--surface2);font-size:.72rem;color:var(--muted);display:flex;justify-content:space-between">
+              <span>${s.nonq||0} non qualifié${(s.nonq||0)>1?'s':''} · ${s.none||0} sans statut</span>
+              <span style="color:${parseInt(s.txSign)>=40?'var(--green)':parseInt(s.txSign)>=25?'var(--yellow)':'var(--red)'};font-weight:600">Tx sign. ${s.txSign}%</span>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  // Simple table for month/week overview
+  const tableSection = (title, rows) => {
+    if (!rows.length) return '';
+    return `
+    <div class="stats-global-section">
+      <div class="sgs-title">${title}</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+          <thead><tr style="background:var(--surface2)">
+            ${['Période','RDVs','Signés','Tx sign.','Décalés','R3','CU arg.','CU signé','PER arg.','PER signé','VREG arg.','VREG signé','Commission'].map(h =>
+              `<th style="padding:.6rem .8rem;text-align:${h==='Commission'?'right':'center'};font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap">${h}</th>`
+            ).join('')}
+          </tr></thead>
+          <tbody>
+            ${rows.map((r,i) => `<tr style="border-bottom:1px solid var(--border);${i%2===1?'background:var(--surface2)':''}">
+              <td style="padding:.55rem .8rem;font-weight:600;white-space:nowrap">${r.name}</td>
+              <td style="padding:.55rem .8rem;text-align:center">${r.rdvs}</td>
+              <td style="padding:.55rem .8rem;text-align:center;color:var(--green);font-weight:700">${r.signed}</td>
+              <td style="padding:.55rem .8rem;text-align:center;font-weight:700;color:${parseInt(r.txSign)>=40?'var(--green)':parseInt(r.txSign)>=25?'var(--yellow)':'var(--red)'}">${r.txSign}%</td>
+              <td style="padding:.55rem .8rem;text-align:center;color:var(--yellow)">${r.decale}</td>
+              <td style="padding:.55rem .8rem;text-align:center;color:var(--blue)">${r.r3}</td>
+              <td style="padding:.55rem .8rem;text-align:center;font-size:.78rem">${fv(r.cuArg)}</td>
+              <td style="padding:.55rem .8rem;text-align:center;font-size:.78rem;font-weight:600;color:var(--accent)">${fv(r.cuSign)}</td>
+              <td style="padding:.55rem .8rem;text-align:center;font-size:.78rem">${fv(r.perArg)}</td>
+              <td style="padding:.55rem .8rem;text-align:center;font-size:.78rem;font-weight:600;color:#6d28d9">${fv(r.perSign)}</td>
+              <td style="padding:.55rem .8rem;text-align:center;font-size:.78rem">${fv(r.vgArg)}</td>
+              <td style="padding:.55rem .8rem;text-align:center;font-size:.78rem;font-weight:600;color:var(--green)">${fv(r.vgSign)}</td>
+              <td style="padding:.55rem .8rem;text-align:right;font-weight:700;color:var(--accent)">${fmtCom(r.com)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  };
+
+  grid.innerHTML = '';
+
+  // ── Insight : meilleur/pire onglet par volume argumenté vs signé
+  if (weeksToProcess.length > 0) {
+    let totCuArg=0, totPerArg=0, totVgArg=0, totCuSign=0, totPerSign=0, totVgSign=0;
+    weeksToProcess.forEach(([wid, w]) => {
+      w.rows.forEach((r, idx) => {
+        const names = r.conseillers.split(',').map(c=>c.trim());
+        if (advisorFilter && !names.some(n=>advisorFilter.includes(n))) return;
+        const ann = state.annotations[wid+'_'+idx] || {};
+        totCuArg+=r.cu; totPerArg+=r.per; totVgArg+=r.vg;
+        if (ann.status==='signe') { totCuSign+=ann.cu_s||0; totPerSign+=ann.per_s||0; totVgSign+=ann.vg_s||0; }
+      });
+    });
+    const txCu = totCuArg>0?(totCuSign/totCuArg*100).toFixed(0):0;
+    const txPer = totPerArg>0?(totPerSign/totPerArg*100).toFixed(0):0;
+    const txVg = totVgArg>0?(totVgSign/totVgArg*100).toFixed(0):0;
+    const onglets = [
+      { name:'CU', arg:totCuArg, sign:totCuSign, tx:parseInt(txCu) },
+      { name:'PER', arg:totPerArg, sign:totPerSign, tx:parseInt(txPer) },
+      { name:'VREG', arg:totVgArg, sign:totVgSign, tx:parseInt(txVg) },
+    ].filter(o=>o.arg>0);
+    if (onglets.length) {
+      const best = onglets.reduce((a,b)=>b.tx>a.tx?b:a);
+      const worst = onglets.reduce((a,b)=>b.tx<a.tx?b:a);
+      grid.innerHTML += `
+        <div class="stats-global-section" style="border-left:3px solid var(--gold)">
+          <div class="sgs-title">🎯 Analyse des onglets — Argumenté vs Signé</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.25rem">
+            ${onglets.map(o => `
+              <div style="background:var(--surface2);border:1px solid var(--border);padding:1rem;text-align:center;${o.name===best.name?'border-color:var(--green)':o.name===worst.name?'border-color:var(--red)':''}">
+                <div style="font-weight:700;font-size:1rem;margin-bottom:.5rem;color:var(--accent)">${o.name} ${o.name===best.name?'<span class="perf-best">Meilleur</span>':o.name===worst.name?'<span class="perf-worst">À améliorer</span>':''}</div>
+                <div style="font-size:.78rem;color:var(--muted)">Argumenté : ${fv(o.arg)}</div>
+                <div style="font-size:.78rem;color:var(--green);font-weight:600">Signé : ${fv(o.sign)}</div>
+                <div style="font-size:1.3rem;font-weight:700;margin-top:.4rem;color:${o.tx>=40?'var(--green)':o.tx>=20?'var(--yellow)':'var(--red)'}">${o.tx}%</div>
+                <div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Taux transformation</div>
+              </div>`).join('')}
+          </div>
+          <div style="font-size:.82rem;color:var(--text-secondary);padding:.75rem;background:var(--surface2);border:1px solid var(--border)">
+            ${best.name===worst.name ? `Seul l'onglet ${best.name} a des données suffisantes.` :
+              `✅ <strong>${best.name}</strong> est l'onglet le plus transformé (${best.tx}%). 
+               ⚠️ <strong>${worst.name}</strong> est l'onglet à travailler en priorité (${worst.tx}% de transformation).`}
+          </div>
+        </div>`;
+    }
+  }
+
+  if (groupStats.some(g => g.rdvs > 0)) grid.innerHTML += statSection('👥 Performance par groupe' + (monthF ? ` — ${monthF}` : ''), groupStats.filter(g=>g.rdvs>0));
+  if (monthStatsComputed.length) grid.innerHTML += tableSection('📅 Par mois', monthStatsComputed);
+  if (weekStats.length) grid.innerHTML += tableSection('📆 Par semaine', weekStats);
+  if (!grid.innerHTML) grid.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><div>Aucune donnée pour ces filtres</div></div>';
+}
+
+function renderAdvisors() {
+  const el = document.getElementById('advisorList');
+  if (!el) return;
+  const advisors = getAllAdvisors();
+  if (!advisors.length) { el.innerHTML = '<span style="color:var(--muted);font-size:.85rem">Aucun mandataire trouvé</span>'; return; }
+  el.innerHTML = advisors.map(a => `
+    <div style="display:flex;align-items:center;gap:.4rem;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:.3rem .3rem .3rem .8rem">
+      <span style="font-size:.83rem;font-weight:500">👤 ${a}</span>
+      <button onclick="deleteAdvisor('${a.replace(/'/g,"\\'")}')" title="Supprimer définitivement" style="background:var(--red-bg);border:1px solid #fca5a5;color:var(--red);border-radius:15px;padding:.2rem .5rem;cursor:pointer;font-size:.72rem;font-weight:600">🗑</button>
+    </div>`).join('');
+}
+
+// ======================== GROUPS ========================
+// ======================== SIGNATURE MANUELLE ========================
+function openManualSignature() {
+  if (!state.activeWeek) { alert('Sélectionnez d\'abord une semaine.'); return; }
+  const sel = document.getElementById('msConseiller');
+  const advisors = getAllAdvisors();
+  const members = state._groupeFilter;
+  const list = members ? advisors.filter(a => members.includes(a)) : advisors;
+  sel.innerHTML = '<option value="">— Sélectionner un MIA —</option>' + list.map(a => `<option value="${a}">${a}</option>`).join('');
+  ['msClient','msJustif','msCu','msPer','msVg'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('msErr').style.display = 'none';
+  document.getElementById('msComPreview').style.display = 'none';
+  ['msCu','msPer','msVg'].forEach(id => { document.getElementById(id).oninput = updateMsPreview; });
+  document.getElementById('manualSignModal').classList.add('open');
+}
+
+function updateMsPreview() {
+  const cu = parseFloat(document.getElementById('msCu').value)||0;
+  const per = parseFloat(document.getElementById('msPer').value)||0;
+  const vg = parseFloat(document.getElementById('msVg').value)||0;
+  const el = document.getElementById('msComPreview');
+  if (cu+per+vg > 0) { el.textContent = `Commission calculée : ${fmtCom(calcCom(cu,per,vg))}`; el.style.display = 'block'; }
+  else { el.style.display = 'none'; }
+}
+
+async function confirmManualSignature() {
+  const client = document.getElementById('msClient').value.trim();
+  const conseiller = document.getElementById('msConseiller').value;
+  const justif = document.getElementById('msJustif').value.trim();
+  const cu = parseFloat(document.getElementById('msCu').value)||0;
+  const per = parseFloat(document.getElementById('msPer').value)||0;
+  const vg = parseFloat(document.getElementById('msVg').value)||0;
+  const errEl = document.getElementById('msErr');
+  errEl.style.display = 'none';
+  if (!client) { errEl.textContent = 'Le nom du client est obligatoire.'; errEl.style.display = 'block'; return; }
+  if (!conseiller) { errEl.textContent = 'Sélectionnez un mandataire.'; errEl.style.display = 'block'; return; }
+  if (!justif) { errEl.textContent = 'La justification est obligatoire.'; errEl.style.display = 'block'; return; }
+  if (cu+per+vg === 0) { errEl.textContent = 'Saisissez au moins un volume signé.'; errEl.style.display = 'block'; return; }
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const wid = state.activeWeek;
+  const w = state.weeks[wid];
+
+  // Insérer la ligne
+  w.rows.push({ date: dateStr, client: client.toUpperCase(), conseillers: conseiller, type: 'MANUEL', cu, per, vg, _manual: true, _justif: justif, _addedBy: state.currentUser.name });
+  const rowIdx = w.rows.length - 1;
+
+  // Annotation pré-signée
+  state.annotations[wid + '_' + rowIdx] = { status: 'signe', cu_s: cu, per_s: per, vg_s: vg, manualJustif: justif, manualBy: state.currentUser.name };
+
+  await saveState();
+  document.getElementById('manualSignModal').classList.remove('open');
+  renderTable(); updateStatsBar(); populateConseillerFilter();
+
+  // Toast notification
+  const n = document.createElement('div');
+  n.style.cssText = 'position:fixed;top:1rem;right:1rem;background:var(--green);color:#fff;padding:1rem 1.5rem;z-index:9999;font-weight:600;font-size:.88rem;box-shadow:0 4px 20px rgba(0,0,0,.25);border-left:4px solid rgba(255,255,255,.4);line-height:1.5';
+  n.innerHTML = `✍️ Signature ajoutée<br><span style="font-weight:400;font-size:.8rem">${client.toUpperCase()} · ${conseiller}<br>${fmtCom(calcCom(cu,per,vg))}</span>`;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 5000);
+  try { await addLog({ user: state.currentUser.name, role: state.currentUser.role, action: `Signature manuelle : ${client} — ${conseiller}` }); } catch(e){}
+}
+
+function renderGroups() {
+  const grid = document.getElementById('groupsGrid');
+  if (!grid) return;
+  const isAdmin = state.currentUser?.role === 'admin';
+
+  if (!state.groups || !state.groups.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👥</div><div>Aucun groupe créé</div></div>`;
+    return;
+  }
+
+  const allAdvisors = getAllAdvisors();
+
+  grid.innerHTML = state.groups.map(g => {
+    const members = g.members || [];
+    const available = allAdvisors.filter(a => !members.includes(a));
+
+    // Stats du groupe
+    const advisorData = buildAdvisorData('');
+    const grpCom = members.reduce((s, m) => s + (advisorData[m]?.com || 0), 0);
+    const grpSigned = members.reduce((s, m) => s + (advisorData[m]?.signed || 0), 0);
+
+    return `<div class="group-card">
+      <div class="group-card-header">
+        <div>
+          <div class="group-card-name">👥 ${g.name}</div>
+          <div class="group-card-rt">🎯 RT : ${g.rt || g.ref || '—'}</div>
+        </div>
+        <div style="display:flex;gap:.4rem">
+          ${isAdmin ? `
+            <button onclick="editGroupRT('${g.id}')" title="Modifier le RT" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:.3rem .6rem;border-radius:6px;cursor:pointer;font-size:.8rem">✏️</button>
+            <button onclick="deleteGroup('${g.id}')" title="Supprimer" style="background:rgba(220,38,38,.4);border:none;color:#fff;padding:.3rem .6rem;border-radius:6px;cursor:pointer;font-size:.8rem">🗑</button>
+          ` : ''}
+        </div>
+      </div>
+      <div class="group-card-body">
+        <div class="group-section-title">
+          <span>MIA — Mandataires (${members.length})</span>
+        </div>
+        ${members.length ? members.map(m => `
+          <div class="group-mia-item">
+            <span class="group-mia-name">👤 ${m}</span>
+            ${isAdmin ? `<button class="btn-remove" onclick="removeMember('${g.id}','${m.replace(/'/g,"\\'")}')" title="Retirer">✕</button>` : ''}
+          </div>`).join('') : '<div style="color:var(--muted);font-size:.82rem;padding:.3rem 0">Aucun mandataire</div>'}
+        ${isAdmin ? `<div class="group-add-row">
+          <select id="addMia_${g.id}">
+            <option value="">+ Ajouter un MIA…</option>
+            ${available.map(a => `<option value="${a}">${a}</option>`).join('')}
+          </select>
+          <button class="btn-add-mia" onclick="addMember('${g.id}')">Ajouter</button>
+        </div>` : ''}
+      </div>
+      <div class="group-card-footer">
+        <span style="font-size:.75rem;color:var(--muted)">${grpSigned} signé${grpSigned>1?'s':''}</span>
+        <div style="text-align:right">
+          <div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Com. réalisée</div>
+          <div style="font-weight:700;color:var(--green);font-size:.88rem">${fmtCom(grpCom)}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectGroup(id) {
+  state.selectedGroup = id;
+  // Dans la nouvelle vue, pas de sélection nécessaire
+}
+
+function openAddGroup() { document.getElementById('addGroupModal').classList.add('open'); }
+
+async function createGroup() {
+  const name = document.getElementById('newGroupName').value.trim();
+  const rt = document.getElementById('newGroupRT').value.trim();
+  if (!name) { alert('Nom du groupe requis.'); return; }
+  if (!Array.isArray(state.groups)) state.groups = [];
+  const id = 'grp_' + Date.now();
+  state.groups.push({ id, name, rt, ref: rt, members: [] });
+  const btn = document.querySelector('#addGroupModal .btn-confirm');
+  if (btn) { btn.textContent = 'Création…'; btn.disabled = true; }
+  try {
+    await saveState();
+    renderGroups();
+    populateHistoryFilters();
+    document.getElementById('addGroupModal').classList.remove('open');
+    document.getElementById('newGroupName').value = '';
+    document.getElementById('newGroupRT').value = '';
+  } catch(e) {
+    alert('Erreur lors de la création : ' + e.message);
+  }
+  if (btn) { btn.textContent = 'Créer'; btn.disabled = false; }
+}
+
+function editGroupRT(gid) {
+  const grp = state.groups.find(g => g.id === gid);
+  if (!grp) return;
+  const newRT = prompt('Nouveau RT pour ' + grp.name + ' :', grp.rt || grp.ref || '');
+  if (newRT === null) return;
+  grp.rt = newRT; grp.ref = newRT;
+  saveState().then(() => renderGroups());
+}
+
+async function addMember(gid) {
+  // Try both possible select IDs
+  const sel = document.getElementById('addMia_' + gid) || document.querySelector(`[data-gid="${gid}"]`);
+  if (!sel || !sel.value) { alert('Sélectionnez un mandataire.'); return; }
+  const name = sel.value;
+  const grp = (state.groups||[]).find(g => g.id === gid);
+  if (!grp) { alert('Groupe introuvable.'); return; }
+  if (!grp.members) grp.members = [];
+  if (grp.members.includes(name)) { alert('Ce mandataire est déjà dans le groupe.'); return; }
+  grp.members.push(name);
+  try {
+    await saveState();
+    renderGroups();
+    populateHistoryFilters();
+  } catch(e) {
+    alert('Erreur lors de l\'ajout : ' + e.message);
+    grp.members.pop();
+  }
+}
+
+// Supprimer définitivement un mandataire de toutes les données
+async function deleteAdvisor(name) {
+  if (!confirm(`Supprimer définitivement ${name} ? Cette action est irréversible.`)) return;
+  // Retirer des groupes
+  (state.groups||[]).forEach(g => { g.members = (g.members||[]).filter(m => m !== name); });
+  // Retirer son nom des conseillers sur chaque RDV
+  Object.values(state.weeks).forEach(w => {
+    w.rows.forEach(r => {
+      const names = r.conseillers.split(',').map(c=>c.trim()).filter(n => n && n !== name);
+      r.conseillers = names.length ? names.join(', ') : '[Supprimé]';
+    });
+  });
+  await saveState();
+  renderGroups();
+  renderTable();
+  populateConseillerFilter();
+  populateGroupeFilter();
+  populateHistoryFilters();
+  renderAdvisors();
+  alert(`${name} a été supprimé définitivement.`);
+}
+
+async function removeMember(gid, name) {
+  const grp = state.groups.find(g => g.id === gid);
+  if (grp) {
+    grp.members = grp.members.filter(m => m !== name);
+    await saveState();
+    renderGroups();
+  }
+}
+
+async function deleteGroup(id) {
+  if (!confirm('Supprimer ce groupe ?')) return;
+  state.groups = state.groups.filter(g => g.id !== id);
+  await saveState();
+  renderGroups();
+  populateHistoryFilters();
+}
+
+async function deleteAllGroups() {
+  if (!confirm('Supprimer TOUS les groupes ? Cette action est irréversible.')) return;
+  state.groups = [];
+  await saveState();
+  renderGroups();
+  populateHistoryFilters();
+}
+
+function renderGroupDetail() {} // Kept for compatibility
+
+// Fermer/archiver une semaine
+async function closeWeek(weekId) {
+  if (!confirm('Fermer et archiver définitivement cette semaine ? Elle ne sera plus modifiable.')) return;
+  state.weeks[weekId].closed = true;
+  state.weeks[weekId].closedAt = new Date().toISOString();
+  await saveState();
+  renderWeekList();
+  renderTable();
+}
+
+// Vérifier les alertes décalés
+function checkAlerts() {
+  const today = new Date().toISOString().split('T')[0];
+  const overdueAlerts = [];
+  const noJustifAlerts = [];
+  Object.entries(state.weeks).forEach(([wid, w]) => {
+    if (w.closed) return;
+    w.rows.forEach((r, idx) => {
+      const ann = state.annotations[wid + '_' + idx];
+      if (!ann) return;
+      if (ann.status === 'decale') {
+        if (!ann.decaleNote || ann.decaleNote.trim() === '') {
+          noJustifAlerts.push({ client: r.client, conseiller: r.conseillers });
+        } else if (ann.decaleAlertDate && ann.decaleAlertDate <= today) {
+          overdueAlerts.push({ client: r.client, conseiller: r.conseillers, note: ann.decaleNote, weekId: wid, rowIdx: idx });
+        }
+      }
+    });
+  });
+  if (noJustifAlerts.length > 0) {
+    alert(`⚠️ ${noJustifAlerts.length} RDV décalé(s) SANS justification :\n\n${noJustifAlerts.map(a=>`• ${a.client} (${a.conseiller})`).join('\n')}\n\nMerci de les justifier.`);
+  }
+  if (overdueAlerts.length > 0) {
+    const msg = overdueAlerts.map(a => `• ${a.client} — ${a.note||'Décalé'}`).join('\n');
+    if (confirm(`⚠️ ${overdueAlerts.length} RDV décalé(s) non repositionné(s) :\n\n${msg}\n\nProlonger le délai de 2 semaines ?`)) {
+      overdueAlerts.forEach(a => {
+        const key = a.weekId + '_' + a.rowIdx;
+        const newDate = new Date(); newDate.setDate(newDate.getDate() + 14);
+        if (state.annotations[key]) state.annotations[key].decaleAlertDate = newDate.toISOString().split('T')[0];
+      });
+      saveState();
+    }
+  }
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ======================== ADMIN - USERS ========================
+async function renderAdminUsers() {
+  const users = await getUsers();
+  const el = document.getElementById('userList');
+  const roleLabel = r => r==='admin'?'🛡️ Admin':r==='rt'?'🎯 RT':r==='user'?'👤 Utilisateur':'👤 Utilisateur';
+  el.innerHTML = users.map(u => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:var(--surface2);border:1px solid var(--border);margin-bottom:.5rem">
+      <div>
+        <div style="font-weight:600;font-size:.9rem">${u.name} ${u.id === state.currentUser?.id ? '<span style="font-size:.72rem;background:var(--accent);color:var(--gold-light);padding:.1rem .4rem;margin-left:.3rem">Vous</span>' : ''}</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:.2rem">
+          ${roleLabel(u.role)} · Créé le ${new Date(u.createdAt).toLocaleDateString('fr-FR')}
+        </div>
+        <div style="margin-top:.4rem;display:flex;gap:.3rem;align-items:center">
+          <span style="font-size:.72rem;color:var(--muted)">Rôle :</span>
+          <select onchange="changeUserRole('${u.id}', this.value)" style="font-size:.75rem;padding:.2rem .4rem;background:var(--surface);border:1px solid var(--border);color:var(--text);outline:none;border-radius:2px" ${u.id===state.currentUser?.id?'disabled':''}>
+            <option value="user" ${(u.role||'user')==='user'?'selected':''}>👤 Utilisateur</option>
+            <option value="rt" ${u.role==='rt'?'selected':''}>🎯 RT</option>
+            <option value="admin" ${u.role==='admin'?'selected':''}>🛡️ Admin</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:.4rem">
+        ${u.id !== state.currentUser?.id ? `
+          <button onclick="resetUserPassword('${u.id}','${u.name.replace(/'/g,"\\'")}')" title="Réinitialiser le mot de passe" style="background:none;border:1px solid var(--border);color:var(--muted);padding:.35rem .65rem;cursor:pointer;font-size:.78rem;font-family:'Inter',sans-serif">🔄 Reset mdp</button>
+          <button onclick="deleteUser('${u.id}')" title="Supprimer" style="background:none;border:1px solid var(--border);color:var(--muted);padding:.35rem .65rem;cursor:pointer;font-size:.8rem">🗑</button>
+        ` : '<span style="font-size:.72rem;color:var(--muted);padding:.35rem .5rem">Utilisez 🔑 dans la barre</span>'}
+      </div>
+    </div>`).join('');
+}
+
+async function changeUserRole(uid, newRole) {
+  const users = await getUsers();
+  const u = users.find(x => x.id === uid);
+  if (!u) return;
+  u.role = newRole;
+  await saveUser(u);
+  await addLog({ user: state.currentUser.name, role: 'admin', action: `Rôle modifié : ${u.name} → ${newRole}` });
+  renderAdminUsers();
+}
+
+function openAddUser() { document.getElementById('addUserModal').classList.add('open'); }
+
+async function confirmAddUser() {
+  const name = document.getElementById('newUserName').value.trim();
+  const pwd = document.getElementById('newUserPwd').value;
+  const pwd2 = document.getElementById('newUserPwd2').value;
+  const role = document.getElementById('newUserRole').value;
+  const errEl = document.getElementById('addUserErr');
+  errEl.style.display = 'none';
+  if (!name) { errEl.textContent = 'Nom requis.'; errEl.style.display = 'block'; return; }
+  if (pwd.length < 6) { errEl.textContent = 'Mot de passe trop court (min 6 caractères).'; errEl.style.display = 'block'; return; }
+  if (pwd !== pwd2) { errEl.textContent = 'Les mots de passe ne correspondent pas.'; errEl.style.display = 'block'; return; }
+  const hash = await sha256(pwd);
+  const newUser = { id: 'u_' + Date.now(), name, role, hash, createdAt: new Date().toISOString() };
+  await saveUser(newUser);
+  await addLog({ user: state.currentUser.name, role: state.currentUser.role, action: `Création compte : ${name}` });
+  document.getElementById('addUserModal').classList.remove('open');
+  document.getElementById('newUserName').value = '';
+  document.getElementById('newUserPwd').value = '';
+  document.getElementById('newUserPwd2').value = '';
+  renderAdminUsers();
+}
+
+// Changer son propre mot de passe (RT / utilisateur)
+function openMyPassword() {
+  document.getElementById('myPwdCurrent').value = '';
+  document.getElementById('myPwdNew').value = '';
+  document.getElementById('myPwdNew2').value = '';
+  document.getElementById('myPwdErr').style.display = 'none';
+  document.getElementById('myPwdModal').classList.add('open');
+}
+
+async function confirmMyPassword() {
+  const current = document.getElementById('myPwdCurrent').value;
+  const newPwd = document.getElementById('myPwdNew').value;
+  const newPwd2 = document.getElementById('myPwdNew2').value;
+  const errEl = document.getElementById('myPwdErr');
+  errEl.style.display = 'none';
+  if (!current) { errEl.textContent = 'Saisissez votre mot de passe actuel.'; errEl.style.display = 'block'; return; }
+  if (newPwd.length < 6) { errEl.textContent = 'Nouveau mot de passe trop court (min 6 caractères).'; errEl.style.display = 'block'; return; }
+  if (newPwd !== newPwd2) { errEl.textContent = 'Les mots de passe ne correspondent pas.'; errEl.style.display = 'block'; return; }
+  // Vérifier le mot de passe actuel
+  const currentHash = await sha256(current);
+  if (currentHash !== state.currentUser.hash) { errEl.textContent = 'Mot de passe actuel incorrect.'; errEl.style.display = 'block'; return; }
+  // Sauvegarder
+  const newHash = await sha256(newPwd);
+  const users = await getUsers();
+  const u = users.find(x => x.id === state.currentUser.id);
+  if (u) {
+    u.hash = newHash;
+    state.currentUser.hash = newHash;
+    await saveUser(u);
+    await addLog({ user: state.currentUser.name, role: state.currentUser.role, action: 'Changement de mot de passe (self)' });
+  }
+  document.getElementById('myPwdModal').classList.remove('open');
+  alert('✅ Mot de passe modifié avec succès.');
+}
+
+// Réinitialisation par admin (génère un mdp temporaire)
+async function resetUserPassword(uid, userName) {
+  if (!confirm(`Réinitialiser le mot de passe de ${userName} ?\nUn mot de passe temporaire sera généré.`)) return;
+  const tempPwd = 'Cap' + Math.floor(1000 + Math.random() * 9000);
+  const hash = await sha256(tempPwd);
+  const users = await getUsers();
+  const u = users.find(x => x.id === uid);
+  if (u) {
+    u.hash = hash;
+    await saveUser(u);
+    await addLog({ user: state.currentUser.name, role: 'admin', action: `Reset mdp : ${userName} → ${tempPwd}` });
+    alert(`Mot de passe temporaire de ${userName} :\n\n${tempPwd}\n\nCommunique-le lui, il pourra le changer depuis son espace.`);
+    renderAdminUsers();
+  }
+}
+
+function openChangePwd(uid) {
+  document.getElementById('changePwdUserId').value = uid;
+  document.getElementById('changePwdNew').value = '';
+  document.getElementById('changePwdNew2').value = '';
+  document.getElementById('changePwdErr').style.display = 'none';
+  document.getElementById('changePwdModal').classList.add('open');
+}
+
+async function confirmChangePwd() {
+  const uid = document.getElementById('changePwdUserId').value;
+  const pwd = document.getElementById('changePwdNew').value;
+  const pwd2 = document.getElementById('changePwdNew2').value;
+  const errEl = document.getElementById('changePwdErr');
+  errEl.style.display = 'none';
+  if (pwd.length < 6) { errEl.textContent = 'Mot de passe trop court (min 6 caractères).'; errEl.style.display = 'block'; return; }
+  if (pwd !== pwd2) { errEl.textContent = 'Les mots de passe ne correspondent pas.'; errEl.style.display = 'block'; return; }
+  const hash = await sha256(pwd);
+  const users = await getUsers();
+  const u = users.find(x => x.id === uid);
+  if (u) {
+    u.hash = hash;
+    await saveUser(u);
+    await addLog({ user: state.currentUser.name, role: 'admin', action: `Changement mdp : ${u.name}` });
+  }
+  document.getElementById('changePwdModal').classList.remove('open');
+  renderAdminUsers();
+}
+
+async function deleteUser(uid) {
+  const users = await getUsers();
+  const u = users.find(x => x.id === uid);
+  if (!u) return;
+  if (!confirm(`Supprimer le compte de ${u.name} ?`)) return;
+  await deleteUserFb(uid);
+  await addLog({ user: state.currentUser.name, role: 'admin', action: `Suppression compte : ${u.name}` });
+  renderAdminUsers();
+}
+
+// ======================== ADMIN - LOGS ========================
+async function renderAdminLogs() {
+  const logs = await getLogs();
+  const el = document.getElementById('logList');
+  if (!logs.length) { el.innerHTML = '<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:2rem">Aucune entrée</div>'; return; }
+  const actionColor = a => a.includes('Échec') ? 'var(--red)' : a.includes('Connexion') ? 'var(--green)' : a.includes('Déconnexion') ? 'var(--muted)' : 'var(--accent)';
+  el.innerHTML = logs.map(l => {
+    const d = new Date(l.ts);
+    const dateStr = d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    return `<div style="display:flex;align-items:flex-start;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--border)">
+      <div style="white-space:nowrap;color:var(--muted);font-size:.75rem;padding-top:.1rem;min-width:115px">${dateStr}</div>
+      <div>
+        <div style="font-weight:600;font-size:.85rem">${l.user} <span style="color:var(--muted);font-weight:400">${l.role === 'admin' ? '🛡️' : '👤'}</span></div>
+        <div style="font-size:.78rem;color:${actionColor(l.action)};margin-top:.05rem">${l.action}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
